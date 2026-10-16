@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 
+import '../data/lab_catalog_data.dart';
 import '../models/lab_item.dart';
 import '../services/app_services.dart';
 import '../services/lab_catalog.dart';
@@ -289,9 +290,12 @@ class RefRangeSettingsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('基準値の設定')),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('優先順位: 用紙に記載の基準値 ＞ ここで設定した基準値 ＞ 既定値（性別・動脈血/静脈血を考慮）'),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('優先順位: 用紙に記載の基準値 ＞ ここで設定した基準値 ＞ 既定値（性別・動脈血/静脈血を考慮）\n\n'
+                '既定値は、JCCLS（日本臨床検査標準協議会）の共用基準範囲がある${jcclsSharedRangeCodes.length}項目はその値を使っています。'
+                '共用基準範囲は健常者のデータから作られた全国共通の基準範囲で、日本臨床検査医学会もその使用を勧めています。'
+                'それ以外の項目は一般的な目安です。施設の基準値が異なる場合はここで変更してください。'),
           ),
           for (final cat in LabCategory.values)
             if (catalog.byCategory(cat).isNotEmpty) ...[
@@ -306,7 +310,8 @@ class RefRangeSettingsScreen extends StatelessWidget {
                       '${user != null ? '設定: ${user.format(def.decimals)}（既定 ${d.format(def.decimals)}）' : '既定: ${d.format(def.decimals)}'} ${def.unit}'
                       '${def.lowM != null ? '\n男性 ${RefRange(def.lowM, def.highM).format(def.decimals)} / 女性 ${RefRange(def.lowF, def.highF).format(def.decimals)}' : ''}'
                       '${def.isGas ? '\n静脈血 ${RefRange(def.venousLow, def.venousHigh).format(def.decimals)}' : ''}'
-                      '${def.rangeNote != null ? '\n${def.rangeNote}' : ''}',
+                      '${def.rangeNote != null ? '\n${def.rangeNote}' : ''}'
+                      '${def.isCustom ? '' : '\n出典: ${defaultRangeSource(def.code)}'}',
                     ),
                     trailing: Icon(user != null ? Icons.edit : Icons.edit_outlined,
                         color: user != null ? Theme.of(context).colorScheme.primary : null),

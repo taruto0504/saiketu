@@ -1,6 +1,6 @@
 // 組み込みの検査項目マスタ。
 //
-// 基準値は主に JCCLS 共用基準範囲などの一般的な値を参考にした目安です。
+// 基準値は、JCCLS 共用基準範囲がある項目はその値（jcclsSharedRangeCodes）、ない項目は一般的な目安です。
 // 施設ごとの基準値は設定画面から変更できます。用紙に基準値の記載があればそちらを優先します。
 // 危険値（パニック値）・誤読判定範囲も一般的な目安であり、施設の運用に合わせて変更してください。
 
@@ -16,6 +16,20 @@ const _lipid = LabCategory.lipid;
 const _card = LabCategory.cardiac;
 const _gas = LabCategory.gas;
 const _other = LabCategory.other;
+
+/// JCCLS（日本臨床検査標準協議会）の共用基準範囲を既定値にしている項目。
+/// 共用基準範囲は、健常者のデータから作られた全国共通の基準範囲（2014年公開）。ALP・LD は IFCC 法の値。
+/// 日本臨床検査医学会もこの範囲の使用を勧めている。
+const Set<String> jcclsSharedRangeCodes = {
+  'WBC', 'RBC', 'HB', 'HT', 'MCV', 'MCH', 'MCHC', 'PLT',
+  'TP', 'ALB', 'BUN', 'CRE', 'UA', 'NA', 'K', 'CL', 'CA', 'P', 'GLU',
+  'TC', 'TG', 'HDL', 'LDL', 'AST', 'ALT', 'LDH', 'ALP', 'GGT', 'CK', 'AMY', 'CHE', 'TBIL',
+  'CRP', 'HBA1C', 'FE', 'IGG', 'IGA', 'IGM', 'C3', 'C4',
+};
+
+/// 既定の基準値の出典の表示。
+String defaultRangeSource(String code) =>
+    jcclsSharedRangeCodes.contains(code) ? 'JCCLS 共用基準範囲' : '一般的な目安';
 
 const List<LabItemDef> builtinLabItems = [
   // ───────── 血算 ─────────
@@ -247,6 +261,31 @@ const List<LabItemDef> builtinLabItems = [
       low: 5, high: 282, lowM: 21, highM: 282, lowF: 5, highF: 157,
       plausLow: 0.5, plausHigh: 100000, decimals: 0,
       aliases: ['FERRITIN', 'FER', 'フェリチン']),
+  LabItemDef(
+      code: 'FE', name: 'Fe', jpName: '血清鉄', category: _prot, unit: 'μg/dL',
+      low: 40, high: 188, plausLow: 1, plausHigh: 1000, decimals: 0,
+      aliases: ['FE', 'Fe', '鉄', '血清鉄', '血清Fe']),
+  LabItemDef(
+      code: 'IGG', name: 'IgG', jpName: '免疫グロブリンG', category: _prot, unit: 'mg/dL',
+      low: 861, high: 1747, plausLow: 50, plausHigh: 10000, decimals: 0,
+      aliases: ['IGG', 'IgG', '免疫グロブリンG']),
+  LabItemDef(
+      code: 'IGA', name: 'IgA', jpName: '免疫グロブリンA', category: _prot, unit: 'mg/dL',
+      low: 93, high: 393, plausLow: 1, plausHigh: 8000, decimals: 0,
+      aliases: ['IGA', 'IgA', '免疫グロブリンA']),
+  LabItemDef(
+      code: 'IGM', name: 'IgM', jpName: '免疫グロブリンM', category: _prot, unit: 'mg/dL',
+      low: 33, high: 269, lowM: 33, highM: 183, lowF: 50, highF: 269,
+      plausLow: 1, plausHigh: 8000, decimals: 0,
+      aliases: ['IGM', 'IgM', '免疫グロブリンM']),
+  LabItemDef(
+      code: 'C3', name: 'C3', jpName: '補体C3', category: _prot, unit: 'mg/dL',
+      low: 73, high: 138, plausLow: 1, plausHigh: 500, decimals: 0,
+      aliases: ['C3', '補体C3']),
+  LabItemDef(
+      code: 'C4', name: 'C4', jpName: '補体C4', category: _prot, unit: 'mg/dL',
+      low: 11, high: 31, plausLow: 0.5, plausHigh: 200, decimals: 0,
+      aliases: ['C4', '補体C4']),
 
   // ───────── 代謝・内分泌 ─────────
   LabItemDef(
