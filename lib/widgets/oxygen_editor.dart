@@ -4,7 +4,7 @@ import '../models/lab_set.dart';
 import '../services/clinical_calc.dart';
 import '../theme.dart';
 
-const oxygenDevices = ['室内気', '鼻カヌラ', '簡易マスク', 'リザーバーマスク', 'ベンチュリーマスク', 'ハイフロー', 'NPPV', '人工呼吸器'];
+const oxygenDevices = ['室内気', '鼻カニューラ', '簡易マスク', 'リザーバーマスク', 'ベンチュリーマスク', 'ハイフロー', 'NPPV', '人工呼吸器'];
 
 /// 酸素投与の表示・手入力欄。
 class OxygenEditor extends StatefulWidget {
@@ -115,7 +115,7 @@ class _OxygenEditorState extends State<OxygenEditor> {
             child: TextField(
               controller: _fio2,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'FiO₂', suffixText: '%'),
+              decoration: const InputDecoration(labelText: 'FiO2', suffixText: '%'),
               onChanged: (v) {
                 final x = double.tryParse(v);
                 o.fio2 = x == null ? null : (x > 1 ? x / 100 : x);
@@ -128,7 +128,7 @@ class _OxygenEditorState extends State<OxygenEditor> {
         if (o.fio2 == null && f.fio2 != null)
           Padding(
             padding: const EdgeInsets.only(top: 6),
-            child: Text('器具と流量からの推定 FiO₂ ≈ ${(f.fio2! * 100).toStringAsFixed(0)}%（目安）',
+            child: Text('器具と流量からの推定 FiO2 ≈ ${(f.fio2! * 100).toStringAsFixed(0)}%（目安）',
                 style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
           ),
       ],

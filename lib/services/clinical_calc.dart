@@ -47,34 +47,34 @@ SpecimenEstimate estimateSpecimen(LabSet set) {
   if (po2 != null) {
     if (po2 >= 70) {
       score += 2;
-      reasons.add('PO₂ ${po2.toStringAsFixed(0)} mmHg（≧70は動脈血に典型的）');
+      reasons.add('PO2 ${po2.toStringAsFixed(0)} mmHg（≧70は動脈血に典型的）');
     } else if (po2 >= 55) {
       score += 1;
-      reasons.add('PO₂ ${po2.toStringAsFixed(0)} mmHg（やや動脈血寄り）');
+      reasons.add('PO2 ${po2.toStringAsFixed(0)} mmHg（やや動脈血寄り）');
     } else if (po2 <= 45) {
       score -= 2;
-      reasons.add('PO₂ ${po2.toStringAsFixed(0)} mmHg（≦45は静脈血に典型的${onO2 ? '。酸素投与下でも静脈血は通常低値' : ''}）');
+      reasons.add('PO2 ${po2.toStringAsFixed(0)} mmHg（≦45は静脈血に典型的${onO2 ? '。酸素投与下でも静脈血は通常低値' : ''}）');
     } else {
-      reasons.add('PO₂ ${po2.toStringAsFixed(0)} mmHg（判別困難な範囲）');
+      reasons.add('PO2 ${po2.toStringAsFixed(0)} mmHg（判別困難な範囲）');
     }
   }
   if (so2 != null) {
     if (so2 >= 92) {
       score += 2;
-      reasons.add('SO₂ ${so2.toStringAsFixed(0)}%（≧92は動脈血に典型的）');
+      reasons.add('SO2 ${so2.toStringAsFixed(0)}%（≧92は動脈血に典型的）');
     } else if (so2 <= 80) {
       score -= 2;
-      reasons.add('SO₂ ${so2.toStringAsFixed(0)}%（≦80は静脈血に典型的）');
+      reasons.add('SO2 ${so2.toStringAsFixed(0)}%（≦80は静脈血に典型的）');
     } else {
-      reasons.add('SO₂ ${so2.toStringAsFixed(0)}%（判別困難な範囲）');
+      reasons.add('SO2 ${so2.toStringAsFixed(0)}%（判別困難な範囲）');
     }
   }
   if (pco2 != null) {
     if (pco2 >= 46 && (po2 == null || po2 < 50)) {
       score -= 1;
-      reasons.add('PCO₂ ${pco2.toStringAsFixed(0)} mmHg（静脈血は動脈血より約5–6高い）');
+      reasons.add('PCO2 ${pco2.toStringAsFixed(0)} mmHg（静脈血は動脈血より約5–6高い）');
     } else {
-      reasons.add('PCO₂ ${pco2.toStringAsFixed(0)} mmHg（単独では判別困難）');
+      reasons.add('PCO2 ${pco2.toStringAsFixed(0)} mmHg（単独では判別困難）');
     }
   }
   final type = score >= 2
@@ -102,6 +102,7 @@ double? estimateFio2(String? device, double? flow) {
   switch (device) {
     case '室内気':
       return 0.21;
+    case '鼻カニューラ':
     case '鼻カヌラ':
       if (flow == null) return null;
       return min(0.21 + 0.04 * flow, 0.45);
@@ -146,7 +147,7 @@ Map<String, DerivedValue> computeDerived(LabSet set) {
   double? ag = g('AG');
   if (na != null && cl != null && hco3 != null) {
     final calc = na - (cl + hco3);
-    out['AG_CALC'] = DerivedValue('AG_CALC', 'AG（計算）', calc, unit: 'mEq/L', formula: 'Na −(Cl + HCO₃⁻)', note: '基準 8–16（施設により10–14）', decimals: 1);
+    out['AG_CALC'] = DerivedValue('AG_CALC', 'AG（計算）', calc, unit: 'mEq/L', formula: 'Na −(Cl + HCO3-)', note: '基準 8–16（施設により10–14）', decimals: 1);
     ag ??= calc;
   }
   if (ag != null && alb != null) {
@@ -155,7 +156,7 @@ Map<String, DerivedValue> computeDerived(LabSet set) {
   }
   if (ag != null && hco3 != null && ag > 16 && hco3 < 24) {
     final dr = (ag - 12) / (24 - hco3);
-    out['DELTA_RATIO'] = DerivedValue('DELTA_RATIO', 'Δ比（ΔAG/ΔHCO₃⁻）', dr, formula: '(AG−12) ÷ (24−HCO₃⁻)', note: '<1: 正AG性アシドーシス合併 / >2: 代謝性アルカローシス合併', decimals: 2);
+    out['DELTA_RATIO'] = DerivedValue('DELTA_RATIO', 'Δ比（ΔAG/ΔHCO3-）', dr, formula: '(AG−12) ÷ (24−HCO3-)', note: '<1: 正AG性アシドーシス合併 / >2: 代謝性アルカローシス合併', decimals: 2);
   }
   final ca = g('CA');
   if (ca != null && alb != null && !v.containsKey('CA_CORR')) {
@@ -165,7 +166,7 @@ Map<String, DerivedValue> computeDerived(LabSet set) {
   if (cre != null && cre > 0 && ctx.age != null && ctx.sex != null && !v.containsKey('EGFR') && ctx.age! >= 18) {
     var e = 194 * pow(cre, -1.094) * pow(ctx.age!, -0.287);
     if (ctx.sex == 'F') e *= 0.739;
-    out['EGFR'] = DerivedValue('EGFR', 'eGFR（計算）', e.toDouble(), unit: 'mL/min/1.73m²', formula: '日本人のGFR推算式', decimals: 1);
+    out['EGFR'] = DerivedValue('EGFR', 'eGFR（計算）', e.toDouble(), unit: 'mL/min/1.73m^2', formula: '日本人のGFR推算式', decimals: 1);
   }
   final tbil = g('TBIL'), dbil = g('DBIL');
   if (tbil != null && dbil != null && tbil > 0) {
@@ -185,7 +186,7 @@ Map<String, DerivedValue> computeDerived(LabSet set) {
   }
   final mcv = g('MCV'), rbc = g('RBC');
   if (mcv != null && rbc != null && rbc > 0 && mcv < 80) {
-    out['MENTZER'] = DerivedValue('MENTZER', 'Mentzer指数', mcv / (rbc / 100), formula: 'MCV ÷ RBC(×10⁶/μL)', note: '<13でサラセミア、>13で鉄欠乏を示唆', decimals: 1);
+    out['MENTZER'] = DerivedValue('MENTZER', 'Mentzer指数', mcv / (rbc / 100), formula: 'MCV ÷ RBC(×10^6/μL)', note: '<13でサラセミア、>13で鉄欠乏を示唆', decimals: 1);
   }
   final wbc = g('WBC'), neut = g('NEUT'), lymph = g('LYMPH');
   if (wbc != null && neut != null) {
@@ -212,23 +213,23 @@ Map<String, DerivedValue> computeDerived(LabSet set) {
   final f = resolveFio2(set.oxygen);
   if (po2 != null && spec == SpecimenType.arterial && est.type != SpecimenType.unknown && f.fio2 != null) {
     final pf = po2 / f.fio2!;
-    out['PF'] = DerivedValue('PF', f.estimated ? 'P/F比（FiO₂推定値）' : 'P/F比', pf,
-        formula: 'PaO₂ ÷ FiO₂(${f.fio2!.toStringAsFixed(2)})',
-        note: '<300: 酸素化障害 / <200: 中等症 / <100: 重症（ARDSの目安）${f.estimated ? '。FiO₂は器具・流量からの推定値' : ''}',
+    out['PF'] = DerivedValue('PF', f.estimated ? 'P/F比（FiO2推定値）' : 'P/F比', pf,
+        formula: 'PaO2 ÷ FiO2(${f.fio2!.toStringAsFixed(2)})',
+        note: '<300: 酸素化障害 / <200: 中等症 / <100: 重症（ARDSの目安）${f.estimated ? '。FiO2は器具・流量からの推定値' : ''}',
         decimals: 0);
     if (pco2 != null) {
       final aado2 = f.fio2! * 713 - pco2 / 0.8 - po2;
-      out['AADO2'] = DerivedValue('AADO2', 'A-aDO₂', aado2, unit: 'mmHg', formula: 'FiO₂×713 − PaCO₂/0.8 − PaO₂', note: '室内気で 年齢/4+4 程度まで', decimals: 0);
+      out['AADO2'] = DerivedValue('AADO2', 'A-aDO2', aado2, unit: 'mmHg', formula: 'FiO2×713 − PaCO2/0.8 − PaO2', note: '室内気で 年齢/4+4 程度まで', decimals: 0);
     }
   }
   final ph = g('PH');
   if (ph != null && pco2 != null && hco3 != null && ph < 7.35 && hco3 < 22) {
     final expected = 1.5 * hco3 + 8;
-    out['WINTER'] = DerivedValue('WINTER', '予測PaCO₂（Winter式）', expected, unit: 'mmHg', formula: '1.5×HCO₃⁻ + 8 ±2',
+    out['WINTER'] = DerivedValue('WINTER', '予測PaCO2（Winter式）', expected, unit: 'mmHg', formula: '1.5×HCO3- + 8 ±2',
         note: pco2 > expected + 2
-            ? '実測PCO₂が高い → 呼吸性アシドーシス合併'
+            ? '実測PCO2が高い → 呼吸性アシドーシス合併'
             : pco2 < expected - 2
-                ? '実測PCO₂が低い → 呼吸性アルカローシス合併'
+                ? '実測PCO2が低い → 呼吸性アルカローシス合併'
                 : '代償は適切',
         decimals: 0);
   }

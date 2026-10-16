@@ -357,7 +357,7 @@ class _ResultsList extends StatelessWidget {
     final parts = <String>[];
     if (o.device != null) parts.add(o.device!);
     if (o.flowLpm != null) parts.add('${o.flowLpm}L/分');
-    if (o.fio2 != null) parts.add('FiO₂ ${(o.fio2! * 100).toStringAsFixed(0)}%');
+    if (o.fio2 != null) parts.add('FiO2 ${(o.fio2! * 100).toStringAsFixed(0)}%');
     final pf = derived['PF'];
     if (pf != null) parts.add('${pf.label} ${pf.value.toStringAsFixed(0)}');
     if (parts.isEmpty) return '酸素投与の記載なし（未確認）・タップして入力';

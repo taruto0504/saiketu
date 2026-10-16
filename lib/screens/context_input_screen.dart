@@ -116,7 +116,7 @@ class _ContextInputScreenState extends State<ContextInputScreen> {
               _num('拡張期血圧', _dbp, suffix: 'mmHg'),
               _num('脈拍', _hr, suffix: '/分'),
               _num('呼吸数', _rr, suffix: '/分'),
-              _num('SpO₂', _spo2, suffix: '%'),
+              _num('SpO2', _spo2, suffix: '%'),
               SizedBox(
                 width: 150,
                 child: DropdownButtonFormField<String?>(

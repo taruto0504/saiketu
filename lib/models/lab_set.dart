@@ -117,7 +117,7 @@ class OxygenInfo {
   /// 用紙から見つかった記載（原文の断片）。
   List<String> foundTexts;
 
-  /// 器具（室内気 / 鼻カヌラ / マスク / リザーバー など）。
+  /// 器具（室内気 / 鼻カニューラ / マスク / リザーバー など）。
   String? device;
   double? flowLpm;
 
@@ -245,7 +245,7 @@ class PatientContext {
     if (sbp != null || dbp != null) m['血圧'] = '${sbp ?? '-'}/${dbp ?? '-'} mmHg';
     if (hr != null) m['脈拍'] = '$hr/分';
     if (rr != null) m['呼吸数'] = '$rr/分';
-    if (spo2 != null) m['SpO₂'] = '$spo2%';
+    if (spo2 != null) m['SpO2'] = '$spo2%';
     if (jcs != null) m['JCS'] = jcs!;
     if (gcs != null) m['GCS'] = '$gcs';
     if (symptoms.isNotEmpty) m['症状'] = symptoms.join('、');

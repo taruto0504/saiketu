@@ -165,7 +165,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
               child: Text(
                   set.specimen.sheetLabel != null
                       ? '用紙に「${set.specimen.sheetLabel!.label}」の記載があります'
-                      : '用紙に検体種別の記載は見つかりませんでした（PO₂・SO₂・PCO₂から推定します）',
+                      : '用紙に検体種別の記載は見つかりませんでした（PO2・SO2・PCO2から推定します）',
                   style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
             ),
           ],

@@ -186,7 +186,7 @@ class LabCatalog extends ChangeNotifier {
     final name = def.name;
     if (best != null) {
       final s = formatNumber(best, def.decimals);
-      return PlausibilityIssue('$name ${_fmt(value)} はありえない値です。小数点ずれ・誤読の可能性（$s ?）', best);
+      return PlausibilityIssue('$name ${_fmt(value)} はありえない値です。小数点ずれ・誤読の可能性（$s の誤りでは？）', best);
     }
     return PlausibilityIssue('$name ${_fmt(value)} はありえない値です。誤読の可能性があります', null);
   }

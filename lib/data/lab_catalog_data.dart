@@ -24,7 +24,7 @@ const List<LabItemDef> builtinLabItems = [
       low: 3300, high: 8600, critLow: 1500, critHigh: 30000,
       plausLow: 50, plausHigh: 500000, decimals: 0,
       aliases: ['WBC', '白血球', '白血球数', 'ワイビーシー', 'WBCCOUNT'],
-      altUnits: [AltUnit('×10^3/μL', 1000), AltUnit('×10³/μL', 1000), AltUnit('10^3/μL', 1000), AltUnit('×10^2/μL', 100), AltUnit('×10^9/L', 1000)]),
+      altUnits: [AltUnit('×10^3/μL', 1000), AltUnit('×10^3/μL', 1000), AltUnit('10^3/μL', 1000), AltUnit('×10^2/μL', 100), AltUnit('×10^9/L', 1000)]),
   LabItemDef(
       code: 'NEUT', name: 'Neut', jpName: '好中球', category: _cbc, unit: '%',
       low: 40, high: 75, plausLow: 0, plausHigh: 100,
@@ -46,11 +46,11 @@ const List<LabItemDef> builtinLabItems = [
       low: 0, high: 2, plausLow: 0, plausHigh: 100,
       aliases: ['BASO', 'BASO%', 'BA%', '好塩基球', '好塩基球%', '好塩基球率']),
   LabItemDef(
-      code: 'RBC', name: 'RBC', jpName: '赤血球数', category: _cbc, unit: '×10⁴/μL',
+      code: 'RBC', name: 'RBC', jpName: '赤血球数', category: _cbc, unit: '×10^4/μL',
       low: 386, high: 555, lowM: 435, highM: 555, lowF: 386, highF: 492,
       plausLow: 50, plausHigh: 900, decimals: 0,
       aliases: ['RBC', '赤血球', '赤血球数'],
-      altUnits: [AltUnit('×10^6/μL', 100), AltUnit('×10⁶/μL', 100), AltUnit('×10^12/L', 100)]),
+      altUnits: [AltUnit('×10^6/μL', 100), AltUnit('×10^6/μL', 100), AltUnit('×10^12/L', 100)]),
   LabItemDef(
       code: 'HB', name: 'Hb', jpName: 'ヘモグロビン', category: _cbc, unit: 'g/dL',
       low: 11.6, high: 16.8, lowM: 13.7, highM: 16.8, lowF: 11.6, highF: 14.8,
@@ -76,11 +76,11 @@ const List<LabItemDef> builtinLabItems = [
       aliases: ['MCHC', '平均赤血球血色素濃度', '平均赤血球ヘモグロビン濃度'],
       altUnits: [AltUnit('g/dL', 1)]),
   LabItemDef(
-      code: 'PLT', name: 'PLT', jpName: '血小板数', category: _cbc, unit: '×10⁴/μL',
+      code: 'PLT', name: 'PLT', jpName: '血小板数', category: _cbc, unit: '×10^4/μL',
       low: 15.8, high: 34.8, critLow: 3.0, critHigh: 100,
       plausLow: 0.1, plausHigh: 300,
       aliases: ['PLT', '血小板', '血小板数', 'PLTS'],
-      altUnits: [AltUnit('×10^3/μL', 0.1), AltUnit('×10³/μL', 0.1), AltUnit('×10^9/L', 0.1), AltUnit('/μL', 0.0001)]),
+      altUnits: [AltUnit('×10^3/μL', 0.1), AltUnit('×10^3/μL', 0.1), AltUnit('×10^9/L', 0.1), AltUnit('/μL', 0.0001)]),
   LabItemDef(
       code: 'RET', name: 'Ret', jpName: '網赤血球', category: _cbc, unit: '%',
       low: 0.5, high: 2.0, plausLow: 0, plausHigh: 50,
@@ -181,7 +181,7 @@ const List<LabItemDef> builtinLabItems = [
       aliases: ['CRE', 'CR', 'CREA', 'CRN', 'CRTN', 'クレアチニン', 'S-CRE', 'Cre'],
       altUnits: [AltUnit('μmol/L', 0.01131)]),
   LabItemDef(
-      code: 'EGFR', name: 'eGFR', jpName: '推算GFR', category: _renal, unit: 'mL/min/1.73m²',
+      code: 'EGFR', name: 'eGFR', jpName: '推算GFR', category: _renal, unit: 'mL/min/1.73m^2',
       low: 60, plausLow: 1, plausHigh: 250,
       aliases: ['EGFR', 'eGFR', 'EGFRCRE', 'eGFRcre', '推算GFR', 'GFR']),
   LabItemDef(
@@ -338,20 +338,20 @@ const List<LabItemDef> builtinLabItems = [
       critLow: 7.20, critHigh: 7.60, plausLow: 6.5, plausHigh: 8.0, decimals: 2, isGas: true,
       aliases: ['PH', 'pH', 'PH(37℃)']),
   LabItemDef(
-      code: 'PCO2', name: 'PCO₂', jpName: '二酸化炭素分圧', category: _gas, unit: 'mmHg',
+      code: 'PCO2', name: 'PCO2', jpName: '二酸化炭素分圧', category: _gas, unit: 'mmHg',
       low: 35, high: 45, venousLow: 41, venousHigh: 51,
       critLow: 20, critHigh: 70, plausLow: 5, plausHigh: 200, isGas: true,
       aliases: ['PCO2', 'PACO2', 'PVCO2', 'PCO2(T)', '二酸化炭素分圧'],
       altUnits: [AltUnit('kPa', 7.50062)]),
   LabItemDef(
-      code: 'PO2', name: 'PO₂', jpName: '酸素分圧', category: _gas, unit: 'mmHg',
+      code: 'PO2', name: 'PO2', jpName: '酸素分圧', category: _gas, unit: 'mmHg',
       low: 80, high: 100, venousLow: 25, venousHigh: 45,
       critLow: 50, plausLow: 5, plausHigh: 700, isGas: true,
       rangeNote: '動脈血の critLow(50) は静脈血では適用しません',
       aliases: ['PO2', 'PAO2', 'PVO2', 'PO2(T)', '酸素分圧'],
       altUnits: [AltUnit('kPa', 7.50062)]),
   LabItemDef(
-      code: 'HCO3', name: 'HCO₃⁻', jpName: '重炭酸イオン', category: _gas, unit: 'mEq/L',
+      code: 'HCO3', name: 'HCO3-', jpName: '重炭酸イオン', category: _gas, unit: 'mEq/L',
       low: 22, high: 26, venousLow: 23, venousHigh: 29,
       critLow: 10, critHigh: 40, plausLow: 1, plausHigh: 60, isGas: true,
       aliases: ['HCO3', 'HCO3-', 'HCO3ACT', 'CHCO3', 'HCO3(P)', 'HCO3(ACT)', 'BICARB', '重炭酸', '重炭酸イオン'],
@@ -363,7 +363,7 @@ const List<LabItemDef> builtinLabItems = [
       aliases: ['BE', 'ABE', 'SBE', 'BE(B)', 'BE(ECF)', 'BEB', 'BEECF', 'ベースエクセス', '塩基過剰'],
       altUnits: [AltUnit('mmol/L', 1)]),
   LabItemDef(
-      code: 'SO2', name: 'SO₂', jpName: '酸素飽和度', category: _gas, unit: '%',
+      code: 'SO2', name: 'SO2', jpName: '酸素飽和度', category: _gas, unit: '%',
       low: 95, high: 100, venousLow: 60, venousHigh: 85,
       plausLow: 5, plausHigh: 100, isGas: true,
       aliases: ['SO2', 'SAO2', 'SVO2', 'O2SAT', 'SO2(C)', 'SO2C', 'O2HB', 'FO2HB', '酸素飽和度']),
@@ -377,17 +377,17 @@ const List<LabItemDef> builtinLabItems = [
       code: 'AG', name: 'AG', jpName: 'アニオンギャップ', category: _gas, unit: 'mEq/L',
       low: 8, high: 16, venousLow: 8, venousHigh: 16,
       plausLow: -10, plausHigh: 60, isGas: true,
-      rangeNote: 'AG = Na −(Cl + HCO₃⁻)。Kを含む式では基準値が高くなります',
+      rangeNote: 'AG = Na −(Cl + HCO3-)。Kを含む式では基準値が高くなります',
       aliases: ['AG', 'ANIONGAP', 'アニオンギャップ', 'AGAP', 'AG(K)']),
 
   // ───────── その他 ─────────
   LabItemDef(
-      code: 'NH3', name: 'NH₃', jpName: 'アンモニア', category: _other, unit: 'μg/dL',
+      code: 'NH3', name: 'NH3', jpName: 'アンモニア', category: _other, unit: 'μg/dL',
       low: 12, high: 66, critHigh: 200, plausLow: 1, plausHigh: 2000, decimals: 0,
       aliases: ['NH3', 'アンモニア', '血中アンモニア', 'AMMONIA'],
       altUnits: [AltUnit('μmol/L', 1.703)]),
   LabItemDef(
-      code: 'OSM', name: '浸透圧', jpName: '血漿浸透圧', category: _other, unit: 'mOsm/kgH₂O',
+      code: 'OSM', name: '浸透圧', jpName: '血漿浸透圧', category: _other, unit: 'mOsm/kgH2O',
       low: 275, high: 290, critLow: 240, critHigh: 330, plausLow: 150, plausHigh: 500, decimals: 0,
       aliases: ['OSM', '浸透圧', '血漿浸透圧', '血清浸透圧', 'POSM', 'SOSM']),
   LabItemDef(

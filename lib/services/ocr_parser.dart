@@ -374,9 +374,9 @@ class _Entry {
       } else {
         u = def.unit;
       }
-      // 単位なしで桁が合わない場合（例: WBC 6.5 → ×10³/μL）
+      // 単位なしで桁が合わない場合（例: WBC 6.5 → ×10^3/μL）
       var issue = catalog.checkPlausibility(code, v);
-      // 危険値を大きく超える場合も、別単位（例: PLT 235 ×10³/μL）の可能性を検討
+      // 危険値を大きく超える場合も、別単位（例: PLT 235 ×10^3/μL）の可能性を検討
       final suspicious = issue != null || (def.critHigh != null && v > def.critHigh! * 1.5);
       if (suspicious && unit == null) {
         for (final a in def.altUnits) {
@@ -475,7 +475,7 @@ OxygenInfo detectOxygen(String text) {
   }
   final devices = <String, RegExp>{
     '室内気': RegExp(r'(室内気|ROOM\s*AIR|\bR\.?A\.?\b|大気下|自発呼吸\(?RA)', caseSensitive: false),
-    '鼻カヌラ': RegExp(r'(鼻カ[ヌニ]ュ?ー?[ラレ]|カ[ヌニ]ュ?ー?[ラレ]|NASAL\s*CANNULA|\bNC\b)', caseSensitive: false),
+    '鼻カニューラ': RegExp(r'(鼻カ[ヌニ]ュ?ー?[ラレ]|カ[ヌニ]ュ?ー?[ラレ]|NASAL\s*CANNULA|\bNC\b)', caseSensitive: false),
     'リザーバーマスク': RegExp(r'(リザーバ|RESERVOIR|NRBM|ノンリブリーザー)', caseSensitive: false),
     'ベンチュリーマスク': RegExp(r'(ベンチュリ|VENTURI)', caseSensitive: false),
     'ハイフロー': RegExp(r'(HFNC|ハイフロー|HIGH\s*FLOW|ネーザルハイ)', caseSensitive: false),

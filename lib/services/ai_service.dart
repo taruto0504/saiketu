@@ -101,7 +101,7 @@ class AiService {
       final f = resolveFio2(current.oxygen);
       b.writeln('- 酸素投与: ${current.oxygen.device ?? '記載なし（未確認）'}'
           '${current.oxygen.flowLpm != null ? ' ${current.oxygen.flowLpm}L/分' : ''}'
-          '${f.fio2 != null ? ' FiO₂ ${f.fio2!.toStringAsFixed(2)}${f.estimated ? '（推定）' : ''}' : ''}');
+          '${f.fio2 != null ? ' FiO2 ${f.fio2!.toStringAsFixed(2)}${f.estimated ? '（推定）' : ''}' : ''}');
     }
     if (previous != null) {
       final days = current.takenAt.difference(previous.takenAt).inHours / 24;

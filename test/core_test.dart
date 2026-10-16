@@ -116,7 +116,7 @@ void main() {
       expect(m['K']!.uncertain, isFalse);
       expect(r.specimen, SpecimenType.arterial);
       expect(r.oxygen.flowLpm, 3);
-      expect(r.oxygen.device, '鼻カヌラ');
+      expect(r.oxygen.device, '鼻カニューラ');
       expect(r.age, 74);
       expect(r.sex, 'M');
       expect(r.skippedPersonalRows, 2);

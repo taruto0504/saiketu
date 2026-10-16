@@ -315,7 +315,7 @@ class Fio2Cond extends Cond {
   Hit? eval(EvalEnv env) {
     final f = env.fio2;
     if (f == null || !_cmp(f, op, a, null)) return null;
-    return Hit([f <= 0.21 ? '室内気（FiO₂ 0.21）' : 'FiO₂ ${f.toStringAsFixed(2)}']);
+    return Hit([f <= 0.21 ? '室内気（FiO2 0.21）' : 'FiO2 ${f.toStringAsFixed(2)}']);
   }
 }
 
@@ -347,7 +347,7 @@ class CtxCond extends Cond {
     'dbp': ('拡張期血圧', 'mmHg'),
     'hr': ('脈拍', '/分'),
     'rr': ('呼吸数', '/分'),
-    'spo2': ('SpO₂', '%'),
+    'spo2': ('SpO2', '%'),
     'gcs': ('GCS', ''),
     'jcs': ('JCS', ''),
     'weight': ('体重', 'kg'),

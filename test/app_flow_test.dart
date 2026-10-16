@@ -98,7 +98,7 @@ void main() {
         }.entries)
           LabValue(code: e.key, value: e.value)
       ],
-      oxygen: OxygenInfo(device: '鼻カヌラ', flowLpm: 3, foundTexts: ['O2 3L/min', '鼻カヌラ']),
+      oxygen: OxygenInfo(device: '鼻カニューラ', flowLpm: 3, foundTexts: ['O2 3L/min', '鼻カニューラ']),
       source: 'photo',
     ));
   });
