@@ -1,0 +1,7428 @@
+{
+ "version": "2026.10-1",
+ "description": "LabSight 判定ルール（端末内ルールベース）。このファイルを編集・差し替えることでルールを更新できます。",
+ "diseases": [
+  {
+   "id": "bacterial_infection",
+   "name": "細菌感染症",
+   "category": "感染・炎症",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 1.0
+     },
+     {
+      "t": "lab",
+      "item": "PCT",
+      "op": "gt",
+      "value": 0.5
+     },
+     {
+      "t": "lab",
+      "item": "WBC",
+      "op": "gt",
+      "value": 10000
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "炎症反応の上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "WBC",
+      "op": "gt",
+      "value": 10000
+     },
+     "w": 1.5,
+     "note": "白血球増多"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NEUT",
+      "op": "gt",
+      "value": 80
+     },
+     "w": 1.5,
+     "note": "好中球優位"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 5
+     },
+     "w": 1.5,
+     "note": "CRP高度上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCT",
+      "op": "ge",
+      "value": 0.5
+     },
+     "w": 2.5,
+     "note": "PCT≥0.5は細菌感染を示唆"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NLR",
+      "op": "gt",
+      "value": 10
+     },
+     "w": 1,
+     "note": "NLR高値"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "temp",
+      "op": "ge",
+      "value": 38
+     },
+     "w": 1.5,
+     "note": "発熱"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "咳",
+       "痰",
+       "排尿時痛",
+       "腹痛",
+       "悪寒",
+       "戦慄",
+       "創部",
+       "発赤",
+       "膿"
+      ]
+     },
+     "w": 1.5,
+     "note": "感染巣を示唆する症状"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCT",
+      "op": "lt",
+      "value": 0.1
+     },
+     "w": 1.5,
+     "note": "PCT低値は細菌感染に否定的"
+    },
+    {
+     "if": {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "CRP",
+        "op": "lt",
+        "value": 0.3
+       },
+       {
+        "t": "lab",
+        "item": "WBC",
+        "op": "normal"
+       }
+      ]
+     },
+     "w": 2,
+     "note": "炎症反応が乏しい"
+    }
+   ],
+   "want": [
+    "PCT",
+    "WBC",
+    "NEUT"
+   ],
+   "tests": [
+    "血液培養2セット",
+    "感染巣の検索（尿検査・胸部X線・画像検査）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "sepsis",
+   "name": "敗血症（臓器障害を伴う感染症）",
+   "category": "感染・炎症",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "CRP",
+        "op": "gt",
+        "value": 3
+       },
+       {
+        "t": "lab",
+        "item": "PCT",
+        "op": "ge",
+        "value": 0.5
+       },
+       {
+        "t": "lab",
+        "item": "WBC",
+        "op": "gt",
+        "value": 12000
+       },
+       {
+        "t": "lab",
+        "item": "WBC",
+        "op": "lt",
+        "value": 4000
+       }
+      ]
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "LAC",
+        "op": "ge",
+        "value": 2
+       },
+       {
+        "t": "lab",
+        "item": "PLT",
+        "op": "lt",
+        "value": 10
+       },
+       {
+        "t": "lab",
+        "item": "TBIL",
+        "op": "gt",
+        "value": 2
+       },
+       {
+        "t": "lab",
+        "item": "CRE",
+        "op": "gt",
+        "value": 1.2
+       },
+       {
+        "t": "lab",
+        "item": "PO2",
+        "op": "lt",
+        "value": 70
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "炎症所見＋臓器障害の所見",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCT",
+      "op": "ge",
+      "value": 2
+     },
+     "w": 2,
+     "note": "PCT≥2は敗血症を強く示唆"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LAC",
+      "op": "ge",
+      "value": 2
+     },
+     "w": 2,
+     "note": "乳酸上昇（組織低灌流）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LAC",
+      "op": "ge",
+      "value": 4
+     },
+     "w": 1.5,
+     "note": "乳酸≥4は敗血症性ショックの目安"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "lt",
+      "value": 10
+     },
+     "w": 1,
+     "note": "血小板減少"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "gt",
+      "value": 2
+     },
+     "w": 1,
+     "note": "腎機能障害"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TBIL",
+      "op": "gt",
+      "value": 2
+     },
+     "w": 1,
+     "note": "高ビリルビン血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "WBC",
+      "op": "lt",
+      "value": 4000
+     },
+     "w": 1,
+     "note": "白血球減少（重症感染のことあり）"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 2.5,
+     "note": "低血圧"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "rr",
+      "op": "ge",
+      "value": 22
+     },
+     "w": 1.5,
+     "note": "頻呼吸（qSOFA）"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 1.5,
+     "note": "意識変容（qSOFA）"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "temp",
+      "op": "ge",
+      "value": 38
+     },
+     "w": 1,
+     "note": "発熱"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "temp",
+      "op": "lt",
+      "value": 36
+     },
+     "w": 1.5,
+     "note": "低体温"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCT",
+      "op": "lt",
+      "value": 0.25
+     },
+     "w": 2,
+     "note": "PCT低値"
+    }
+   ],
+   "want": [
+    "LAC",
+    "PCT",
+    "PLT",
+    "TBIL"
+   ],
+   "tests": [
+    "血液培養2セット",
+    "SOFAスコアの評価",
+    "感染巣の画像検索"
+   ],
+   "minScore": 2,
+   "alert": "緊急度が高い病態です"
+  },
+  {
+   "id": "viral_infection",
+   "name": "ウイルス感染症",
+   "category": "感染・炎症",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "CRP",
+        "op": "between",
+        "value": 0.15,
+        "value2": 5
+       }
+      ]
+     },
+     {
+      "t": "not",
+      "of": [
+       {
+        "t": "lab",
+        "item": "WBC",
+        "op": "gt",
+        "value": 10000
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "軽度のCRP上昇で白血球増多なし",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "WBC",
+      "op": "lt",
+      "value": 4000
+     },
+     "w": 1.5,
+     "note": "白血球減少"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LYMPH",
+      "op": "gt",
+      "value": 45
+     },
+     "w": 1,
+     "note": "リンパ球比率上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AST",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "軽度の肝酵素上昇"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "咽頭痛",
+       "鼻汁",
+       "咳",
+       "発疹",
+       "関節痛",
+       "倦怠感"
+      ]
+     },
+     "w": 1.5,
+     "note": "感冒様症状"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "temp",
+      "op": "ge",
+      "value": 38
+     },
+     "w": 1,
+     "note": "発熱"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCT",
+      "op": "ge",
+      "value": 0.5
+     },
+     "w": 2,
+     "note": "PCT高値は細菌感染を示唆"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NEUT",
+      "op": "gt",
+      "value": 85
+     },
+     "w": 1.5,
+     "note": "好中球優位"
+    }
+   ],
+   "want": [
+    "PCT"
+   ],
+   "tests": [
+    "迅速抗原検査（インフルエンザ・COVID-19など）",
+    "必要に応じウイルス抗体検査"
+   ],
+   "minScore": 2.5
+  },
+  {
+   "id": "aki",
+   "name": "急性腎障害（AKI）",
+   "category": "腎",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "delta",
+      "item": "CRE",
+      "op": "rise",
+      "value": 0.3
+     },
+     {
+      "t": "delta",
+      "item": "CRE",
+      "op": "rise_ratio",
+      "value": 1.5
+     },
+     {
+      "t": "lab",
+      "item": "CRE",
+      "op": "gt",
+      "value": 1.5
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "Cre上昇（KDIGO基準：48時間で0.3以上 / 1.5倍以上）",
+   "findings": [
+    {
+     "if": {
+      "t": "delta",
+      "item": "CRE",
+      "op": "rise_ratio",
+      "value": 2
+     },
+     "w": 1.5,
+     "note": "Cre 2倍以上（Stage2以上）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "gt",
+      "value": 5.5
+     },
+     "w": 1.5,
+     "note": "高K血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HCO3",
+      "op": "lt",
+      "value": 20
+     },
+     "w": 1,
+     "note": "代謝性アシドーシス"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "P",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "高P血症"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "尿量減少",
+       "乏尿",
+       "無尿",
+       "浮腫"
+      ]
+     },
+     "w": 2,
+     "note": "尿量低下"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "NSAID",
+       "ロキソプロフェン",
+       "ボルタレン",
+       "ACE",
+       "ARB",
+       "利尿",
+       "造影",
+       "バンコマイシン",
+       "アミノグリコシド"
+      ]
+     },
+     "w": 1.5,
+     "note": "腎障害を起こしうる薬剤"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "HB",
+        "op": "normal"
+       },
+       {
+        "t": "lab",
+        "item": "EGFR",
+        "op": "lt",
+        "value": 30
+       },
+       {
+        "t": "not",
+        "of": [
+         {
+          "t": "delta",
+          "item": "CRE",
+          "op": "rise",
+          "value": 0.3
+         }
+        ]
+       }
+      ]
+     },
+     "w": 1,
+     "note": "前回比較がなく慢性経過の可能性"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "CKD",
+       "慢性腎",
+       "透析"
+      ]
+     },
+     "w": 1.5,
+     "note": "慢性腎臓病の既往"
+    }
+   ],
+   "want": [
+    "K",
+    "HCO3"
+   ],
+   "tests": [
+    "尿検査・尿Na・FENa",
+    "腹部エコー（腎後性の除外）",
+    "尿量の確認",
+    "前回Cre値との比較"
+   ],
+   "minScore": 2,
+   "alert": "高K血症・溢水に注意"
+  },
+  {
+   "id": "prerenal",
+   "name": "腎前性腎障害・脱水",
+   "category": "腎",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "BUN_CRE",
+      "op": "gt",
+      "value": 20
+     },
+     {
+      "t": "lab",
+      "item": "BUN",
+      "op": "high"
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "BUN/Cre比>20 かつ BUN高値",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "Cre上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NA",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "高Na血症（自由水欠乏）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HT",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "Ht上昇（血液濃縮）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TP",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "TP上昇（血液濃縮）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "UA",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "尿酸上昇"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "嘔吐",
+       "下痢",
+       "食欲不振",
+       "口渇",
+       "経口摂取不良",
+       "脱水"
+      ]
+     },
+     "w": 2,
+     "note": "体液喪失・摂取不良"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "hr",
+      "op": "ge",
+      "value": 100
+     },
+     "w": 1,
+     "note": "頻脈"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 1.5,
+     "note": "低血圧"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "利尿",
+       "フロセミド",
+       "ラシックス"
+      ]
+     },
+     "w": 1,
+     "note": "利尿薬"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "HB",
+      "op": "lt",
+      "value": 9
+     },
+     "w": 1.5,
+     "note": "貧血があれば消化管出血も考慮"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "尿比重・尿Na・FENa",
+    "体重変化・In/Outバランス",
+    "下大静脈径（エコー）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "gi_bleeding",
+   "name": "上部消化管出血",
+   "category": "消化器",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "BUN_CRE",
+      "op": "gt",
+      "value": 25
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "HB",
+        "op": "low"
+       },
+       {
+        "t": "delta",
+        "item": "HB",
+        "op": "fall",
+        "value": 1.5
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "BUN/Cre比著明高値＋貧血",
+   "findings": [
+    {
+     "if": {
+      "t": "delta",
+      "item": "HB",
+      "op": "fall",
+      "value": 2
+     },
+     "w": 2,
+     "note": "Hb急低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HB",
+      "op": "lt",
+      "value": 8
+     },
+     "w": 1,
+     "note": "中等度以上の貧血"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MCV",
+      "op": "normal"
+     },
+     "w": 0.5,
+     "note": "正球性（急性出血）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "吐血",
+       "下血",
+       "黒色便",
+       "タール便",
+       "コーヒー残渣"
+      ]
+     },
+     "w": 3,
+     "note": "出血症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "NSAID",
+       "アスピリン",
+       "ワーファリン",
+       "ワルファリン",
+       "DOAC",
+       "抗血小板",
+       "抗凝固",
+       "バイアスピリン",
+       "クロピドグレル",
+       "エリキュース",
+       "イグザレルト",
+       "リクシアナ"
+      ]
+     },
+     "w": 1.5,
+     "note": "出血リスク薬"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "hr",
+      "op": "ge",
+      "value": 100
+     },
+     "w": 1,
+     "note": "頻脈"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 1.5,
+     "note": "低血圧"
+    }
+   ],
+   "against": [],
+   "want": [
+    "HB",
+    "PT_INR"
+   ],
+   "tests": [
+    "直腸診・便潜血",
+    "上部消化管内視鏡",
+    "輸血準備（血液型・交差試験）"
+   ],
+   "minScore": 2,
+   "alert": "循環動態の確認を優先"
+  },
+  {
+   "id": "ckd",
+   "name": "慢性腎臓病（CKD）",
+   "category": "腎",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "EGFR",
+      "op": "lt",
+      "value": 60
+     },
+     {
+      "t": "lab",
+      "item": "CRE",
+      "op": "gt",
+      "value": 1.3
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "eGFR低下 / Cre上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "EGFR",
+      "op": "lt",
+      "value": 30
+     },
+     "w": 1.5,
+     "note": "eGFR<30（G4以上）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "腎性貧血の可能性"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "P",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "高P血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CA",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "低Ca血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "高K血症"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "CKD",
+       "慢性腎",
+       "腎不全",
+       "糖尿病",
+       "高血圧",
+       "腎硬化"
+      ]
+     },
+     "w": 2,
+     "note": "関連する既往"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "delta",
+      "item": "CRE",
+      "op": "rise",
+      "value": 0.3
+     },
+     "w": 2,
+     "note": "急な上昇はAKIを示唆"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "過去のCre値との比較（3か月以上の持続）",
+    "尿蛋白・尿アルブミン",
+    "腎エコー（萎縮の有無）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "rhabdo",
+   "name": "横紋筋融解症",
+   "category": "筋",
+   "gate": {
+    "t": "lab",
+    "item": "CK",
+    "op": "gt",
+    "value": 1000
+   },
+   "gateWeight": 3,
+   "gateNote": "CK著明高値",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CK",
+      "op": "gt",
+      "value": 5000
+     },
+     "w": 2,
+     "note": "CK>5000は腎障害リスク高"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "腎機能障害"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "高K血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AST_ALT",
+      "op": "gt",
+      "value": 1.5
+     },
+     "w": 1,
+     "note": "AST優位（筋由来）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LDH",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "LDH上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CA",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "低Ca血症"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "筋肉痛",
+       "脱力",
+       "褐色尿",
+       "コーラ色",
+       "長時間臥床",
+       "倒れていた",
+       "痙攣",
+       "熱中症"
+      ]
+     },
+     "w": 2,
+     "note": "関連する病歴"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "スタチン",
+       "フィブラート"
+      ]
+     },
+     "w": 1,
+     "note": "筋障害を起こしうる薬剤"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "TNT",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "トロポニン上昇は心筋障害も考慮"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TNI",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "トロポニン上昇は心筋障害も考慮"
+    }
+   ],
+   "want": [
+    "CRE",
+    "K"
+   ],
+   "tests": [
+    "尿検査（尿潜血陽性・沈渣赤血球なし）",
+    "尿中/血中ミオグロビン",
+    "補液と尿量モニタリング"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hyperkalemia",
+   "name": "高K血症",
+   "category": "電解質",
+   "gate": {
+    "t": "lab",
+    "item": "K",
+    "op": "gt",
+    "value": 5.5
+   },
+   "gateWeight": 3,
+   "gateNote": "K上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "ge",
+      "value": 6.5
+     },
+     "w": 2,
+     "note": "K≥6.5は致死的不整脈のリスク"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "腎機能低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PH",
+      "op": "lt",
+      "value": 7.35
+     },
+     "w": 1,
+     "note": "アシドーシス"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "GLU",
+      "op": "gt",
+      "value": 250
+     },
+     "w": 0.5,
+     "note": "高血糖（インスリン欠乏）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "ACE",
+       "ARB",
+       "スピロノラクトン",
+       "エプレレノン",
+       "ST合剤",
+       "カリウム",
+       "NSAID",
+       "トリメトプリム",
+       "タクロリムス"
+      ]
+     },
+     "w": 2,
+     "note": "K上昇を起こしうる薬剤"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "脱力",
+       "しびれ",
+       "徐脈"
+      ]
+     },
+     "w": 1,
+     "note": "高K血症の症状"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "K",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "LDH",
+        "op": "high"
+       }
+      ]
+     },
+     "w": 2,
+     "note": "溶血による偽性高K血症の可能性"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "gt",
+      "value": 60
+     },
+     "w": 1.5,
+     "note": "血小板増多による偽性高K血症の可能性"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "12誘導心電図（テント状T波・QRS開大）",
+    "再検（溶血のない検体で）",
+    "血液ガスでK・pHを迅速確認"
+   ],
+   "minScore": 2,
+   "alert": "心電図を確認"
+  },
+  {
+   "id": "hypokalemia",
+   "name": "低K血症",
+   "category": "電解質",
+   "gate": {
+    "t": "lab",
+    "item": "K",
+    "op": "lt",
+    "value": 3.5
+   },
+   "gateWeight": 2.5,
+   "gateNote": "K低下",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "lt",
+      "value": 2.5
+     },
+     "w": 2,
+     "note": "高度低K血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HCO3",
+      "op": "gt",
+      "value": 28
+     },
+     "w": 1,
+     "note": "代謝性アルカローシス（嘔吐・利尿薬など）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MG",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低Mg血症（補正困難の原因）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "嘔吐",
+       "下痢",
+       "脱力",
+       "筋力低下"
+      ]
+     },
+     "w": 1.5,
+     "note": "消化管喪失・症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "利尿",
+       "フロセミド",
+       "サイアザイド",
+       "甘草",
+       "漢方",
+       "インスリン",
+       "ステロイド"
+      ]
+     },
+     "w": 1.5,
+     "note": "K低下を起こしうる薬剤"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "心電図（U波・QT延長）",
+    "Mgの確認",
+    "尿中K（腎性喪失か）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hyponatremia",
+   "name": "低Na血症",
+   "category": "電解質",
+   "gate": {
+    "t": "lab",
+    "item": "NA",
+    "op": "lt",
+    "value": 135
+   },
+   "gateWeight": 2.5,
+   "gateNote": "Na低下",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "NA",
+      "op": "lt",
+      "value": 125
+     },
+     "w": 2,
+     "note": "高度低Na血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "OSM",
+      "op": "lt",
+      "value": 275
+     },
+     "w": 1,
+     "note": "低浸透圧性"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "UA",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低尿酸（SIADHを示唆）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "BUN",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "BUN低値（SIADH・水中毒）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "嘔気",
+       "頭痛",
+       "意識",
+       "痙攣",
+       "倦怠感"
+      ]
+     },
+     "w": 1.5,
+     "note": "低Na血症の症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "サイアザイド",
+       "SSRI",
+       "カルバマゼピン",
+       "抗精神病",
+       "利尿"
+      ]
+     },
+     "w": 1.5,
+     "note": "低Na血症を起こしうる薬剤"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 1.5,
+     "note": "意識障害"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "GLU",
+      "op": "gt",
+      "value": 400
+     },
+     "w": 2,
+     "note": "高血糖による見かけ上の低Na（補正Naを確認）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TG",
+      "op": "gt",
+      "value": 1500
+     },
+     "w": 2,
+     "note": "高TG血症による偽性低Na血症の可能性"
+    }
+   ],
+   "want": [
+    "OSM",
+    "GLU"
+   ],
+   "tests": [
+    "血漿浸透圧",
+    "尿浸透圧・尿Na",
+    "体液量評価",
+    "TSH・コルチゾール"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hypernatremia",
+   "name": "高Na血症（自由水欠乏）",
+   "category": "電解質",
+   "gate": {
+    "t": "lab",
+    "item": "NA",
+    "op": "gt",
+    "value": 145
+   },
+   "gateWeight": 2.5,
+   "gateNote": "Na上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "NA",
+      "op": "gt",
+      "value": 155
+     },
+     "w": 2,
+     "note": "高度高Na血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "BUN_CRE",
+      "op": "gt",
+      "value": 20
+     },
+     "w": 1,
+     "note": "脱水所見"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "OSM",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "高浸透圧"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "age",
+      "op": "ge",
+      "value": 65
+     },
+     "w": 1,
+     "note": "高齢（口渇感低下）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "口渇",
+       "経口摂取不良",
+       "発熱",
+       "多尿"
+      ]
+     },
+     "w": 1.5,
+     "note": "関連する症状"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "尿浸透圧（尿崩症の鑑別）",
+    "体液量評価",
+    "In/Outバランス"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hypercalcemia",
+   "name": "高Ca血症",
+   "category": "電解質",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "CA_CORR",
+      "op": "gt",
+      "value": 10.4
+     },
+     {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "CA",
+        "op": "gt",
+        "value": 10.4
+       },
+       {
+        "t": "not",
+        "of": [
+         {
+          "t": "lab",
+          "item": "CA_CORR",
+          "op": "present"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "（補正）Ca上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CA_CORR",
+      "op": "gt",
+      "value": 12
+     },
+     "w": 2,
+     "note": "高度高Ca血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "P",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低P血症（副甲状腺機能亢進症を示唆）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALP",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "ALP上昇（骨病変）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LDH",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "LDH上昇（悪性腫瘍）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "腎機能低下"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "癌",
+       "がん",
+       "腫瘍",
+       "骨髄腫",
+       "副甲状腺"
+      ]
+     },
+     "w": 2,
+     "note": "関連する既往"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "ビタミンD",
+       "エルデカルシトール",
+       "アルファカルシドール",
+       "カルシウム",
+       "サイアザイド"
+      ]
+     },
+     "w": 1.5,
+     "note": "Ca上昇を起こしうる薬剤"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 1,
+     "note": "意識障害"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "intact-PTH",
+    "PTHrP",
+    "1,25(OH)2ビタミンD",
+    "血清/尿蛋白電気泳動"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hypocalcemia",
+   "name": "低Ca血症",
+   "category": "電解質",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "CA_CORR",
+      "op": "lt",
+      "value": 8.4
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "補正Ca低下",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CA_CORR",
+      "op": "lt",
+      "value": 7
+     },
+     "w": 2,
+     "note": "高度低Ca血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MG",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低Mg血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "P",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "高P血症（腎不全・副甲状腺機能低下）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "腎機能低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AMY",
+      "op": "gt",
+      "value": 500
+     },
+     "w": 1,
+     "note": "膵炎に伴う低Ca"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "しびれ",
+       "テタニー",
+       "痙攣",
+       "こむら返り"
+      ]
+     },
+     "w": 2,
+     "note": "低Ca血症の症状"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "イオン化Ca（血液ガス）",
+    "intact-PTH",
+    "Mg",
+    "心電図（QT延長）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hypomg",
+   "name": "低Mg血症",
+   "category": "電解質",
+   "gate": {
+    "t": "lab",
+    "item": "MG",
+    "op": "lt",
+    "value": 1.7
+   },
+   "gateWeight": 2.5,
+   "gateNote": "Mg低下",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低K血症合併"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CA",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低Ca血症合併"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "アルコール",
+       "飲酒"
+      ]
+     },
+     "w": 1.5,
+     "note": "アルコール多飲"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "PPI",
+       "利尿",
+       "シスプラチン"
+      ]
+     },
+     "w": 1.5,
+     "note": "Mg低下を起こしうる薬剤"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "心電図（QT延長・不整脈）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hypophos_refeeding",
+   "name": "低P血症（リフィーディング症候群など）",
+   "category": "電解質",
+   "gate": {
+    "t": "lab",
+    "item": "P",
+    "op": "lt",
+    "value": 2.5
+   },
+   "gateWeight": 2,
+   "gateNote": "P低下",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "P",
+      "op": "lt",
+      "value": 1.0
+     },
+     "w": 2,
+     "note": "高度低P血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低K血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MG",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低Mg血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALB",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "低栄養"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "course",
+      "any": [
+       "栄養開始",
+       "経管栄養",
+       "TPN",
+       "再開",
+       "絶食"
+      ]
+     },
+     "w": 2,
+     "note": "栄養再開後"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "アルコール",
+       "摂食障害",
+       "低栄養"
+      ]
+     },
+     "w": 1.5,
+     "note": "高リスク背景"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "栄養投与量の確認",
+    "P・K・Mgの連日測定"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "ag_acidosis",
+   "name": "AG開大性代謝性アシドーシス",
+   "category": "酸塩基",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HCO3",
+      "op": "lt",
+      "value": 22
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "AG_CALC",
+        "op": "gt",
+        "value": 16
+       },
+       {
+        "t": "lab",
+        "item": "AG",
+        "op": "gt",
+        "value": 16
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "HCO₃⁻低下＋AG開大",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PH",
+      "op": "lt",
+      "value": 7.35
+     },
+     "w": 1,
+     "note": "アシデミア"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LAC",
+      "op": "ge",
+      "value": 4
+     },
+     "w": 2,
+     "note": "乳酸アシドーシス"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "GLU",
+      "op": "gt",
+      "value": 250
+     },
+     "w": 1.5,
+     "note": "高血糖（DKAを考慮）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "KETONE",
+      "op": "gt",
+      "value": 3000
+     },
+     "w": 2,
+     "note": "ケトン体著増"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "gt",
+      "value": 3
+     },
+     "w": 1,
+     "note": "腎不全（尿毒症）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "OSM_GAP",
+      "op": "gt",
+      "value": 10
+     },
+     "w": 2,
+     "note": "浸透圧ギャップ開大（メタノール・エチレングリコール）"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "rr",
+      "op": "ge",
+      "value": 22
+     },
+     "w": 1,
+     "note": "頻呼吸（Kussmaul呼吸）"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "乳酸・ケトン体",
+    "浸透圧ギャップ",
+    "薬物・中毒スクリーニング（サリチル酸など）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "lactic_acidosis",
+   "name": "乳酸アシドーシス（組織低灌流など）",
+   "category": "酸塩基",
+   "gate": {
+    "t": "lab",
+    "item": "LAC",
+    "op": "ge",
+    "value": 2.5
+   },
+   "gateWeight": 3,
+   "gateNote": "乳酸上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "LAC",
+      "op": "ge",
+      "value": 4
+     },
+     "w": 2,
+     "note": "乳酸≥4"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HCO3",
+      "op": "lt",
+      "value": 20
+     },
+     "w": 1,
+     "note": "HCO₃⁻低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PH",
+      "op": "lt",
+      "value": 7.3
+     },
+     "w": 1,
+     "note": "アシデミア"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 2,
+     "note": "低血圧（ショック）"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "hr",
+      "op": "ge",
+      "value": 100
+     },
+     "w": 1,
+     "note": "頻脈"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "メトホルミン",
+       "メトグルコ"
+      ]
+     },
+     "w": 1.5,
+     "note": "メトホルミン内服"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "腹痛",
+       "痙攣"
+      ]
+     },
+     "w": 1,
+     "note": "腸管虚血・痙攣後も考慮"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "循環動態の評価（ショックの鑑別）",
+    "乳酸の再検（クリアランス）",
+    "腸管虚血の評価（腹痛時）"
+   ],
+   "minScore": 2,
+   "alert": "ショック・組織低灌流に注意"
+  },
+  {
+   "id": "dka",
+   "name": "糖尿病性ケトアシドーシス（DKA）",
+   "category": "代謝",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "GLU",
+      "op": "gt",
+      "value": 250
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "HCO3",
+        "op": "lt",
+        "value": 18
+       },
+       {
+        "t": "lab",
+        "item": "PH",
+        "op": "lt",
+        "value": 7.3
+       },
+       {
+        "t": "lab",
+        "item": "KETONE",
+        "op": "gt",
+        "value": 3000
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 4,
+   "gateNote": "高血糖＋アシドーシス/ケトーシス",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "KETONE",
+      "op": "gt",
+      "value": 3000
+     },
+     "w": 2,
+     "note": "ケトン体著増"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AG_CALC",
+      "op": "gt",
+      "value": 16
+     },
+     "w": 1.5,
+     "note": "AG開大"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PH",
+      "op": "lt",
+      "value": 7.0
+     },
+     "w": 1,
+     "note": "重度アシドーシス"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "見かけの高K（総K欠乏に注意）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "糖尿病",
+       "1型"
+      ]
+     },
+     "w": 2,
+     "note": "糖尿病の既往"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "インスリン",
+       "SGLT2",
+       "ジャディアンス",
+       "フォシーガ",
+       "カナグル",
+       "スーグラ"
+      ]
+     },
+     "w": 1.5,
+     "note": "インスリン中断・SGLT2阻害薬"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "口渇",
+       "多尿",
+       "嘔吐",
+       "腹痛",
+       "意識"
+      ]
+     },
+     "w": 1.5,
+     "note": "DKAの症状"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "KETONE",
+      "op": "lt",
+      "value": 500
+     },
+     "w": 2,
+     "note": "ケトン体が低い"
+    }
+   ],
+   "want": [
+    "KETONE",
+    "PH",
+    "HCO3",
+    "K"
+   ],
+   "tests": [
+    "血中ケトン体（βヒドロキシ酪酸）",
+    "血液ガス",
+    "K・P の頻回測定",
+    "誘因（感染・心筋梗塞）の検索"
+   ],
+   "minScore": 2,
+   "alert": "緊急治療を要する病態"
+  },
+  {
+   "id": "hhs",
+   "name": "高浸透圧高血糖状態（HHS）",
+   "category": "代謝",
+   "gate": {
+    "t": "lab",
+    "item": "GLU",
+    "op": "gt",
+    "value": 600
+   },
+   "gateWeight": 3,
+   "gateNote": "著明な高血糖",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "OSM",
+      "op": "gt",
+      "value": 320
+     },
+     "w": 2,
+     "note": "血漿浸透圧>320"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "OSM_CALC",
+      "op": "gt",
+      "value": 320
+     },
+     "w": 1.5,
+     "note": "計算浸透圧>320"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HCO3",
+      "op": "gt",
+      "value": 18
+     },
+     "w": 1,
+     "note": "アシドーシスは軽度"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "BUN_CRE",
+      "op": "gt",
+      "value": 20
+     },
+     "w": 1,
+     "note": "高度脱水"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "age",
+      "op": "ge",
+      "value": 65
+     },
+     "w": 1,
+     "note": "高齢"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 2,
+     "note": "意識障害"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "KETONE",
+      "op": "gt",
+      "value": 3000
+     },
+     "w": 1.5,
+     "note": "ケトーシス著明ならDKA"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "血漿浸透圧",
+    "血液ガス・ケトン体",
+    "誘因（感染など）の検索"
+   ],
+   "minScore": 2,
+   "alert": "緊急治療を要する病態"
+  },
+  {
+   "id": "hypoglycemia",
+   "name": "低血糖",
+   "category": "代謝",
+   "gate": {
+    "t": "lab",
+    "item": "GLU",
+    "op": "lt",
+    "value": 70
+   },
+   "gateWeight": 3,
+   "gateNote": "血糖低下",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "GLU",
+      "op": "lt",
+      "value": 50
+     },
+     "w": 2,
+     "note": "高度低血糖"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "インスリン",
+       "SU",
+       "グリメピリド",
+       "アマリール",
+       "グリクラジド",
+       "グリベンクラミド"
+      ]
+     },
+     "w": 2,
+     "note": "低血糖を起こしうる薬剤"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 1.5,
+     "note": "意識障害"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "冷汗",
+       "動悸",
+       "振戦",
+       "意識"
+      ]
+     },
+     "w": 1.5,
+     "note": "低血糖症状"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "腎機能低下（薬剤蓄積）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "アルコール",
+       "肝硬変",
+       "副腎"
+      ]
+     },
+     "w": 1,
+     "note": "関連する背景"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "WBC",
+      "op": "gt",
+      "value": 50000
+     },
+     "w": 2,
+     "note": "白血球著増による解糖（偽性低血糖）の可能性"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "血糖の再検（簡易血糖測定器）",
+    "インスリン・Cペプチド（原因不明時）",
+    "コルチゾール"
+   ],
+   "minScore": 2,
+   "alert": "直ちに血糖補正を検討"
+  },
+  {
+   "id": "diabetes",
+   "name": "糖尿病（慢性高血糖）",
+   "category": "代謝",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HBA1C",
+      "op": "ge",
+      "value": 6.5
+     },
+     {
+      "t": "lab",
+      "item": "GLU",
+      "op": "ge",
+      "value": 200
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "HbA1c≥6.5 または 随時血糖≥200",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "HBA1C",
+      "op": "ge",
+      "value": 6.5
+     },
+     "w": 2,
+     "note": "HbA1c 糖尿病型"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "GLU",
+      "op": "ge",
+      "value": 126
+     },
+     "w": 1,
+     "note": "高血糖"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "糖尿病"
+      ]
+     },
+     "w": 1.5,
+     "note": "糖尿病の既往"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "空腹時血糖・HbA1cの再検",
+    "尿糖・尿ケトン",
+    "合併症評価"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "resp_acidosis",
+   "name": "呼吸性アシドーシス（CO₂貯留）",
+   "category": "酸塩基",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PCO2",
+      "op": "gt",
+      "value": 45
+     },
+     {
+      "t": "lab",
+      "item": "PH",
+      "op": "lt",
+      "value": 7.35
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "PCO₂上昇＋アシデミア",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCO2",
+      "op": "gt",
+      "value": 60
+     },
+     "w": 2,
+     "note": "高度高CO₂血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HCO3",
+      "op": "gt",
+      "value": 28
+     },
+     "w": 1,
+     "note": "代償（慢性経過を示唆）"
+    },
+    {
+     "if": {
+      "t": "specimen",
+      "value": "A"
+     },
+     "w": 0.5,
+     "note": "動脈血での評価"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "COPD",
+       "肺気腫",
+       "神経筋",
+       "睡眠時無呼吸",
+       "肥満低換気"
+      ]
+     },
+     "w": 2,
+     "note": "CO₂貯留のリスク"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "オピオイド",
+       "モルヒネ",
+       "ベンゾジアゼピン",
+       "睡眠薬"
+      ]
+     },
+     "w": 1.5,
+     "note": "呼吸抑制薬"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 1.5,
+     "note": "意識障害（CO₂ナルコーシス）"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "specimen",
+      "value": "V"
+     },
+     "w": 2,
+     "note": "静脈血ではPCO₂が高めに出る"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "動脈血ガスでの確認",
+    "胸部X線",
+    "換気補助の要否の判断"
+   ],
+   "minScore": 2,
+   "alert": "CO₂ナルコーシスに注意"
+  },
+  {
+   "id": "resp_alkalosis",
+   "name": "呼吸性アルカローシス（過換気）",
+   "category": "酸塩基",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PCO2",
+      "op": "lt",
+      "value": 35
+     },
+     {
+      "t": "lab",
+      "item": "PH",
+      "op": "gt",
+      "value": 7.45
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "PCO₂低下＋アルカレミア",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PO2",
+      "op": "low"
+     },
+     "w": 1.5,
+     "note": "低酸素血症を伴う（肺塞栓・肺炎など）"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "rr",
+      "op": "ge",
+      "value": 22
+     },
+     "w": 1,
+     "note": "頻呼吸"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "しびれ",
+       "過呼吸",
+       "不安",
+       "呼吸困難"
+      ]
+     },
+     "w": 1.5,
+     "note": "関連する症状"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "temp",
+      "op": "ge",
+      "value": 38
+     },
+     "w": 1,
+     "note": "発熱・敗血症初期"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "低酸素の原因検索（肺塞栓・肺炎）",
+    "敗血症の除外"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "met_alkalosis",
+   "name": "代謝性アルカローシス",
+   "category": "酸塩基",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HCO3",
+      "op": "gt",
+      "value": 28
+     },
+     {
+      "t": "lab",
+      "item": "PH",
+      "op": "gt",
+      "value": 7.45
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "HCO₃⁻上昇＋アルカレミア",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "low"
+     },
+     "w": 1.5,
+     "note": "低K血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CL",
+      "op": "low"
+     },
+     "w": 1.5,
+     "note": "低Cl血症（嘔吐・胃液喪失）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "嘔吐",
+       "胃管"
+      ]
+     },
+     "w": 2,
+     "note": "胃液喪失"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "利尿",
+       "フロセミド",
+       "サイアザイド",
+       "甘草"
+      ]
+     },
+     "w": 1.5,
+     "note": "利尿薬など"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "尿Cl（Cl反応性かどうか）",
+    "体液量評価"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "normal_ag_acidosis",
+   "name": "正AG性代謝性アシドーシス",
+   "category": "酸塩基",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HCO3",
+      "op": "lt",
+      "value": 22
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "AG_CALC",
+        "op": "le",
+        "value": 16
+       }
+      ]
+     },
+     {
+      "t": "lab",
+      "item": "PH",
+      "op": "lt",
+      "value": 7.35
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "HCO₃⁻低下でAG正常",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CL",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "高Cl血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低K血症（下痢・RTA）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "下痢"
+      ]
+     },
+     "w": 2,
+     "note": "下痢"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "course",
+      "any": [
+       "生理食塩水",
+       "大量輸液"
+      ]
+     },
+     "w": 1.5,
+     "note": "大量生食投与"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "尿AG（尿Na+尿K−尿Cl）",
+    "便の性状"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hypoxemia",
+   "name": "低酸素血症・呼吸不全",
+   "category": "呼吸",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "PO2",
+        "op": "lt",
+        "value": 60
+       },
+       {
+        "t": "lab",
+        "item": "SO2",
+        "op": "lt",
+        "value": 90
+       }
+      ]
+     },
+     {
+      "t": "not",
+      "of": [
+       {
+        "t": "specimen",
+        "value": "V"
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "PaO₂<60 または SaO₂<90",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PF",
+      "op": "lt",
+      "value": 300
+     },
+     "w": 2,
+     "note": "P/F比<300（酸素化障害）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCO2",
+      "op": "gt",
+      "value": 45
+     },
+     "w": 1,
+     "note": "II型呼吸不全（CO₂貯留）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCO2",
+      "op": "lt",
+      "value": 35
+     },
+     "w": 0.5,
+     "note": "I型呼吸不全（過換気）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AADO2",
+      "op": "gt",
+      "value": 20
+     },
+     "w": 1,
+     "note": "A-aDO₂開大"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "spo2",
+      "op": "lt",
+      "value": 94
+     },
+     "w": 1.5,
+     "note": "SpO₂低下"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "rr",
+      "op": "ge",
+      "value": 22
+     },
+     "w": 1,
+     "note": "頻呼吸"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "呼吸困難",
+       "息切れ",
+       "咳",
+       "胸痛"
+      ]
+     },
+     "w": 1.5,
+     "note": "呼吸器症状"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "specimen",
+      "value": "V"
+     },
+     "w": 3,
+     "note": "静脈血のPO₂は低いのが正常"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "酸素投与条件（FiO₂）の確認",
+    "胸部X線・CT",
+    "心エコー"
+   ],
+   "minScore": 2,
+   "alert": "酸素化を確認"
+  },
+  {
+   "id": "ards",
+   "name": "ARDS・急性肺障害（酸素化障害）",
+   "category": "呼吸",
+   "gate": {
+    "t": "lab",
+    "item": "PF",
+    "op": "lt",
+    "value": 300
+   },
+   "gateWeight": 3,
+   "gateNote": "P/F比<300",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PF",
+      "op": "lt",
+      "value": 200
+     },
+     "w": 2,
+     "note": "P/F<200（中等症以上）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PF",
+      "op": "lt",
+      "value": 100
+     },
+     "w": 1.5,
+     "note": "P/F<100（重症）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 10
+     },
+     "w": 1,
+     "note": "高度炎症（肺炎・敗血症）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AMY",
+      "op": "gt",
+      "value": 500
+     },
+     "w": 1,
+     "note": "膵炎"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "呼吸困難",
+       "咳"
+      ]
+     },
+     "w": 1,
+     "note": "呼吸器症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "other",
+      "any": [
+       "両側",
+       "すりガラス",
+       "浸潤影"
+      ]
+     },
+     "w": 2,
+     "note": "両側陰影"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "BNP",
+      "op": "gt",
+      "value": 500
+     },
+     "w": 2,
+     "note": "BNP高値は心原性肺水腫も考慮"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NTPROBNP",
+      "op": "gt",
+      "value": 2000
+     },
+     "w": 2,
+     "note": "NT-proBNP高値は心原性肺水腫も考慮"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "胸部X線・CT（両側陰影）",
+    "心エコー（心原性の除外）",
+    "BNP"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "ida",
+   "name": "鉄欠乏性貧血",
+   "category": "血液",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     {
+      "t": "lab",
+      "item": "MCV",
+      "op": "lt",
+      "value": 80
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "小球性貧血",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "FERRITIN",
+      "op": "lt",
+      "value": 12
+     },
+     "w": 3,
+     "note": "フェリチン低値（鉄欠乏）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MCH",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低色素性"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MENTZER",
+      "op": "gt",
+      "value": 13
+     },
+     "w": 1,
+     "note": "Mentzer指数>13"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "反応性血小板増多"
+    },
+    {
+     "if": {
+      "t": "sex",
+      "value": "F"
+     },
+     "w": 0.5,
+     "note": "女性（月経）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "黒色便",
+       "過多月経",
+       "下血"
+      ]
+     },
+     "w": 2,
+     "note": "慢性出血"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "FERRITIN",
+      "op": "gt",
+      "value": 100
+     },
+     "w": 2.5,
+     "note": "フェリチン正常〜高値（慢性炎症・サラセミアを考慮）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MENTZER",
+      "op": "lt",
+      "value": 13
+     },
+     "w": 1.5,
+     "note": "Mentzer指数<13はサラセミアを示唆"
+    }
+   ],
+   "want": [
+    "FERRITIN"
+   ],
+   "tests": [
+    "血清鉄・TIBC・フェリチン",
+    "便潜血",
+    "消化管内視鏡（出血源検索）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "acd",
+   "name": "慢性炎症に伴う貧血（ACD）",
+   "category": "血液",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     {
+      "t": "lab",
+      "item": "MCV",
+      "op": "le",
+      "value": 95
+     },
+     {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 1
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "炎症を伴う正〜小球性貧血",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "FERRITIN",
+      "op": "gt",
+      "value": 100
+     },
+     "w": 2,
+     "note": "フェリチン高値"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALB",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "低Alb"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "FERRITIN",
+      "op": "lt",
+      "value": 30
+     },
+     "w": 2,
+     "note": "フェリチン低値は鉄欠乏"
+    }
+   ],
+   "want": [
+    "FERRITIN"
+   ],
+   "tests": [
+    "鉄・TIBC・フェリチン",
+    "基礎疾患（感染・膠原病・悪性腫瘍）の評価"
+   ],
+   "minScore": 2.5
+  },
+  {
+   "id": "macrocytic",
+   "name": "大球性貧血（ビタミンB12・葉酸欠乏など）",
+   "category": "血液",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     {
+      "t": "lab",
+      "item": "MCV",
+      "op": "gt",
+      "value": 100
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "大球性貧血",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "MCV",
+      "op": "gt",
+      "value": 110
+     },
+     "w": 1.5,
+     "note": "著明な大球性"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LDH",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "LDH上昇（無効造血）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "WBC",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "汎血球減少傾向"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "血小板減少"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "胃切除",
+       "アルコール",
+       "悪性貧血"
+      ]
+     },
+     "w": 2,
+     "note": "関連する既往"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "メトトレキサート",
+       "ヒドロキシウレア",
+       "抗てんかん"
+      ]
+     },
+     "w": 1,
+     "note": "関連する薬剤"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "ビタミンB12・葉酸",
+    "網赤血球",
+    "甲状腺機能",
+    "肝機能"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hemolysis",
+   "name": "溶血性貧血",
+   "category": "血液",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     {
+      "t": "lab",
+      "item": "LDH",
+      "op": "high"
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "RET",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "TBIL",
+        "op": "gt",
+        "value": 1.5
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "貧血＋LDH上昇＋網赤血球増加/ビリルビン上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "RET",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "網赤血球増加（骨髄の代償）"
+    },
+    {
+     "if": {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "TBIL",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "DBIL_RATIO",
+        "op": "lt",
+        "value": 30
+       }
+      ]
+     },
+     "w": 1.5,
+     "note": "間接ビリルビン優位"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AST_ALT",
+      "op": "gt",
+      "value": 2
+     },
+     "w": 0.5,
+     "note": "AST優位"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MCV",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "網赤血球による大球性"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALT",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "ALT上昇は肝障害も考慮"
+    }
+   ],
+   "want": [
+    "RET",
+    "DBIL"
+   ],
+   "tests": [
+    "ハプトグロビン",
+    "直接クームス試験",
+    "末梢血塗抹（破砕赤血球・球状赤血球）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "acute_bleeding",
+   "name": "急性出血",
+   "category": "血液",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "delta",
+      "item": "HB",
+      "op": "fall",
+      "value": 2
+     },
+     {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "HB",
+        "op": "lt",
+        "value": 9
+       },
+       {
+        "t": "lab",
+        "item": "BUN",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "BUN_CRE",
+        "op": "gt",
+        "value": 20
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "Hbの急低下 / 貧血＋BUN上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "delta",
+      "item": "HB",
+      "op": "fall",
+      "value": 3
+     },
+     "w": 1.5,
+     "note": "Hb 3以上の低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MCV",
+      "op": "normal"
+     },
+     "w": 0.5,
+     "note": "正球性"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "凝固能低下"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "吐血",
+       "下血",
+       "黒色便",
+       "出血",
+       "外傷"
+      ]
+     },
+     "w": 3,
+     "note": "出血症状"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 2,
+     "note": "低血圧"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "hr",
+      "op": "ge",
+      "value": 100
+     },
+     "w": 1,
+     "note": "頻脈"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "抗凝固",
+       "ワルファリン",
+       "DOAC",
+       "抗血小板",
+       "アスピリン"
+      ]
+     },
+     "w": 1,
+     "note": "抗血栓薬"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "出血源の検索（内視鏡・造影CT）",
+    "血液型・交差試験",
+    "凝固検査"
+   ],
+   "minScore": 2,
+   "alert": "循環動態を確認"
+  },
+  {
+   "id": "pancytopenia",
+   "name": "汎血球減少（骨髄抑制・血液疾患など）",
+   "category": "血液",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "WBC",
+      "op": "lt",
+      "value": 3000
+     },
+     {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     {
+      "t": "lab",
+      "item": "PLT",
+      "op": "lt",
+      "value": 10
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "3系統の減少",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "ANC",
+      "op": "lt",
+      "value": 500
+     },
+     "w": 2,
+     "note": "好中球<500（感染リスク高）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "MCV",
+      "op": "gt",
+      "value": 100
+     },
+     "w": 1,
+     "note": "大球性（B12欠乏・MDS）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "RET",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "網赤血球低下（産生低下）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "抗がん剤",
+       "化学療法",
+       "メトトレキサート",
+       "免疫抑制",
+       "抗甲状腺"
+      ]
+     },
+     "w": 2.5,
+     "note": "骨髄抑制を起こす薬剤"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "temp",
+      "op": "ge",
+      "value": 38
+     },
+     "w": 1.5,
+     "note": "発熱（発熱性好中球減少症）"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "末梢血塗抹",
+    "ビタミンB12・葉酸",
+    "骨髄検査（血液内科へ相談）"
+   ],
+   "minScore": 2,
+   "alert": "発熱性好中球減少症に注意"
+  },
+  {
+   "id": "leukemia_suspect",
+   "name": "白血病など造血器腫瘍の疑い",
+   "category": "血液",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "WBC",
+      "op": "gt",
+      "value": 50000
+     },
+     {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "WBC",
+        "op": "gt",
+        "value": 20000
+       },
+       {
+        "t": "any",
+        "of": [
+         {
+          "t": "lab",
+          "item": "HB",
+          "op": "low"
+         },
+         {
+          "t": "lab",
+          "item": "PLT",
+          "op": "low"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "著明な白血球増多（＋他系統の減少）",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "low"
+     },
+     "w": 1.5,
+     "note": "血小板減少"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "貧血"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LDH",
+      "op": "gt",
+      "value": 500
+     },
+     "w": 1.5,
+     "note": "LDH高値"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "UA",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "尿酸上昇（腫瘍崩壊）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NEUT",
+      "op": "lt",
+      "value": 40
+     },
+     "w": 1,
+     "note": "好中球比率低下（芽球の可能性）"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "NEUT",
+      "op": "gt",
+      "value": 85
+     },
+     "w": 1,
+     "note": "好中球優位（類白血病反応の可能性）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 10
+     },
+     "w": 1,
+     "note": "高度炎症（反応性増多）"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "末梢血塗抹（芽球の有無）",
+    "血液内科へ相談",
+    "腫瘍崩壊症候群の評価（K・P・UA・Cre）"
+   ],
+   "minScore": 2,
+   "alert": "血液内科への相談を検討"
+  },
+  {
+   "id": "dic",
+   "name": "DIC（播種性血管内凝固）",
+   "category": "凝固",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PLT",
+      "op": "lt",
+      "value": 12
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "FDP",
+        "op": "gt",
+        "value": 10
+       },
+       {
+        "t": "lab",
+        "item": "DDIMER",
+        "op": "gt",
+        "value": 3
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "血小板減少＋FDP/Dダイマー上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "lt",
+      "value": 8
+     },
+     "w": 1,
+     "note": "血小板<8万"
+    },
+    {
+     "if": {
+      "t": "delta",
+      "item": "PLT",
+      "op": "fall_pct",
+      "value": 30
+     },
+     "w": 1.5,
+     "note": "血小板 30%以上の減少"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "FDP",
+      "op": "gt",
+      "value": 25
+     },
+     "w": 1.5,
+     "note": "FDP高値"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "FIB",
+      "op": "lt",
+      "value": 150
+     },
+     "w": 1.5,
+     "note": "フィブリノゲン低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "gt",
+      "value": 1.4
+     },
+     "w": 1,
+     "note": "PT延長"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AT",
+      "op": "lt",
+      "value": 70
+     },
+     "w": 1,
+     "note": "AT低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 5
+     },
+     "w": 0.5,
+     "note": "感染（基礎疾患）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "敗血症",
+       "がん",
+       "癌",
+       "白血病",
+       "大動脈瘤",
+       "外傷",
+       "産科"
+      ]
+     },
+     "w": 1.5,
+     "note": "DICの基礎疾患"
+    }
+   ],
+   "against": [],
+   "want": [
+    "FDP",
+    "DDIMER",
+    "FIB",
+    "PT_INR",
+    "AT"
+   ],
+   "tests": [
+    "DIC診断基準でのスコアリング",
+    "基礎疾患の評価",
+    "凝固検査の経時的変化"
+   ],
+   "minScore": 2,
+   "alert": "基礎疾患の治療とDIC管理"
+  },
+  {
+   "id": "ttp_hus",
+   "name": "TMA（TTP・HUS）",
+   "category": "血液",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PLT",
+      "op": "lt",
+      "value": 10
+     },
+     {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     {
+      "t": "lab",
+      "item": "LDH",
+      "op": "high"
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "血小板減少＋貧血＋LDH上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "腎障害（HUSを示唆）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "RET",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "網赤血球増加"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TBIL",
+      "op": "gt",
+      "value": 1.5
+     },
+     "w": 1,
+     "note": "間接ビリルビン上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "normal"
+     },
+     "w": 1,
+     "note": "凝固能が保たれる（DICとの鑑別）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "血便",
+       "下痢",
+       "意識",
+       "神経"
+      ]
+     },
+     "w": 1.5,
+     "note": "関連する症状"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "temp",
+      "op": "ge",
+      "value": 38
+     },
+     "w": 0.5,
+     "note": "発熱"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "gt",
+      "value": 1.5
+     },
+     "w": 1.5,
+     "note": "凝固異常が強ければDICを考慮"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "FIB",
+      "op": "lt",
+      "value": 150
+     },
+     "w": 1,
+     "note": "フィブリノゲン低下はDICを示唆"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "末梢血塗抹（破砕赤血球）",
+    "ADAMTS13活性・インヒビター",
+    "便培養（STEC）",
+    "ハプトグロビン"
+   ],
+   "minScore": 2,
+   "alert": "血液内科への緊急相談を検討"
+  },
+  {
+   "id": "itp",
+   "name": "免疫性血小板減少症（ITP）・薬剤性血小板減少",
+   "category": "血液",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PLT",
+      "op": "lt",
+      "value": 10
+     },
+     {
+      "t": "lab",
+      "item": "HB",
+      "op": "normal"
+     },
+     {
+      "t": "lab",
+      "item": "WBC",
+      "op": "normal"
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "血小板単独の減少",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "lt",
+      "value": 3
+     },
+     "w": 1.5,
+     "note": "高度血小板減少"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "ヘパリン"
+      ]
+     },
+     "w": 2,
+     "note": "ヘパリン（HITを考慮）"
+    },
+    {
+     "if": {
+      "t": "delta",
+      "item": "PLT",
+      "op": "fall_pct",
+      "value": 50
+     },
+     "w": 1.5,
+     "note": "50%以上の急減"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "点状出血",
+       "紫斑",
+       "鼻出血",
+       "歯肉出血"
+      ]
+     },
+     "w": 1.5,
+     "note": "出血症状"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "FDP",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "FDP上昇はDICを考慮"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "末梢血塗抹（偽性血小板減少：EDTA凝集の除外）",
+    "クエン酸採血での再検",
+    "HIT抗体（ヘパリン使用時）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "polycythemia",
+   "name": "多血症（真性・二次性・相対的）",
+   "category": "血液",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "HB",
+      "op": "gt",
+      "value": 18
+     },
+     {
+      "t": "lab",
+      "item": "HT",
+      "op": "gt",
+      "value": 52
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "Hb/Ht上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "BUN_CRE",
+      "op": "gt",
+      "value": 20
+     },
+     "w": 1,
+     "note": "脱水による相対的多血の可能性"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "WBC",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "白血球増多"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "血小板増多"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "喫煙",
+       "COPD",
+       "睡眠時無呼吸"
+      ]
+     },
+     "w": 1.5,
+     "note": "二次性多血のリスク"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "エリスロポエチン",
+    "JAK2遺伝子変異（血液内科）",
+    "SpO₂・睡眠評価"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "acute_hepatitis",
+   "name": "急性肝炎（肝細胞障害型）",
+   "category": "肝",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "ALT",
+      "op": "gtx",
+      "value": 5
+     },
+     {
+      "t": "lab",
+      "item": "AST",
+      "op": "gtx",
+      "value": 5
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "AST/ALT 基準上限の5倍以上",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "AST_ALT",
+      "op": "lt",
+      "value": 1
+     },
+     "w": 1.5,
+     "note": "ALT優位"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TBIL",
+      "op": "gt",
+      "value": 2
+     },
+     "w": 1,
+     "note": "黄疸"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "gt",
+      "value": 1.5
+     },
+     "w": 2,
+     "note": "凝固能低下（急性肝不全に注意）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "倦怠感",
+       "黄疸",
+       "食欲不振",
+       "嘔気"
+      ]
+     },
+     "w": 1,
+     "note": "肝炎症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "アセトアミノフェン",
+       "カロナール",
+       "抗菌",
+       "抗結核",
+       "サプリ",
+       "漢方"
+      ]
+     },
+     "w": 2,
+     "note": "薬物性肝障害の可能性"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CK",
+      "op": "gt",
+      "value": 1000
+     },
+     "w": 1.5,
+     "note": "CK高値は筋由来のAST/ALT上昇も考慮"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "肝炎ウイルスマーカー（HA-IgM・HBs抗原・HBc-IgM・HCV抗体）",
+    "PT-INR",
+    "腹部エコー",
+    "薬剤歴"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "shock_liver",
+   "name": "虚血性肝炎（ショック肝）",
+   "category": "肝",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "AST",
+      "op": "gt",
+      "value": 1000
+     },
+     {
+      "t": "lab",
+      "item": "ALT",
+      "op": "gt",
+      "value": 1000
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "AST/ALT>1000",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "AST_ALT",
+      "op": "gt",
+      "value": 1
+     },
+     "w": 1,
+     "note": "AST優位"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LDH",
+      "op": "gt",
+      "value": 1000
+     },
+     "w": 2,
+     "note": "LDH著明上昇（ALT/LDH比<1.5）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "LAC",
+      "op": "ge",
+      "value": 2
+     },
+     "w": 1,
+     "note": "乳酸上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "腎障害合併"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 2,
+     "note": "低血圧"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "心不全",
+       "心停止",
+       "ショック"
+      ]
+     },
+     "w": 2,
+     "note": "低灌流の病歴"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "循環動態の評価",
+    "心エコー",
+    "AST/ALTの推移（急速に低下するのが特徴）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "alcoholic_liver",
+   "name": "アルコール性肝障害",
+   "category": "肝",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "AST_ALT",
+      "op": "gt",
+      "value": 2
+     },
+     {
+      "t": "lab",
+      "item": "GGT",
+      "op": "high"
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "AST/ALT>2＋γ-GTP上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "MCV",
+      "op": "gt",
+      "value": 100
+     },
+     "w": 1.5,
+     "note": "大球性（アルコール）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TG",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "高TG血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "血小板減少"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "アルコール",
+       "飲酒",
+       "大酒"
+      ]
+     },
+     "w": 3,
+     "note": "飲酒歴"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CK",
+      "op": "gt",
+      "value": 500
+     },
+     "w": 1.5,
+     "note": "CK高値は筋由来のAST上昇も考慮"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "飲酒歴の聴取",
+    "腹部エコー",
+    "Mg・P・ビタミンB1"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "cholestasis",
+   "name": "胆汁うっ滞・閉塞性黄疸",
+   "category": "肝胆",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "ALP",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "GGT",
+        "op": "high"
+       }
+      ]
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "TBIL",
+        "op": "gt",
+        "value": 2
+       },
+       {
+        "t": "lab",
+        "item": "DBIL",
+        "op": "gt",
+        "value": 0.8
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "胆道系酵素＋ビリルビン上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "DBIL_RATIO",
+      "op": "gt",
+      "value": 50
+     },
+     "w": 1.5,
+     "note": "直接ビリルビン優位"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALP",
+      "op": "gtx",
+      "value": 2
+     },
+     "w": 1,
+     "note": "ALP上限の2倍以上"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "GGT",
+      "op": "gtx",
+      "value": 3
+     },
+     "w": 1,
+     "note": "γ-GTP高値"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AMY",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "膵酵素上昇（総胆管結石・膵頭部病変）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "黄疸",
+       "灰白色便",
+       "褐色尿",
+       "掻痒",
+       "右季肋部痛",
+       "心窩部痛"
+      ]
+     },
+     "w": 2,
+     "note": "閉塞性黄疸の症状"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "腹部エコー（胆管拡張）",
+    "CT/MRCP",
+    "腫瘍マーカー（CA19-9など）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "cholangitis",
+   "name": "急性胆管炎",
+   "category": "肝胆",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "ALP",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "GGT",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "TBIL",
+        "op": "high"
+       }
+      ]
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "CRP",
+        "op": "gt",
+        "value": 1
+       },
+       {
+        "t": "lab",
+        "item": "WBC",
+        "op": "gt",
+        "value": 10000
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "胆道系酵素上昇＋炎症",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "TBIL",
+      "op": "gt",
+      "value": 2
+     },
+     "w": 1.5,
+     "note": "黄疸"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALT",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "肝酵素上昇"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "temp",
+      "op": "ge",
+      "value": 38
+     },
+     "w": 2,
+     "note": "発熱（Charcot三徴）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "右季肋部痛",
+       "腹痛",
+       "黄疸",
+       "悪寒"
+      ]
+     },
+     "w": 2,
+     "note": "Charcot三徴"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "胆石",
+       "胆管",
+       "ERCP",
+       "ステント"
+      ]
+     },
+     "w": 1.5,
+     "note": "胆道疾患の既往"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 1,
+     "note": "低血圧（重症化）"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 1,
+     "note": "意識障害（Reynolds五徴）"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "腹部エコー・CT（胆管拡張・結石）",
+    "血液培養",
+    "Tokyo Guidelines による重症度判定"
+   ],
+   "minScore": 2,
+   "alert": "重症例は緊急胆道ドレナージ"
+  },
+  {
+   "id": "pancreatitis",
+   "name": "急性膵炎",
+   "category": "膵",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "AMY",
+      "op": "gtx",
+      "value": 3
+     },
+     {
+      "t": "lab",
+      "item": "LIP",
+      "op": "gtx",
+      "value": 3
+     }
+    ]
+   },
+   "gateWeight": 4,
+   "gateNote": "膵酵素 上限の3倍以上",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "LIP",
+      "op": "gtx",
+      "value": 3
+     },
+     "w": 1,
+     "note": "リパーゼ上昇（特異度が高い）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TG",
+      "op": "gt",
+      "value": 1000
+     },
+     "w": 1.5,
+     "note": "高TG血症性膵炎"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALT",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "ALT上昇（胆石性を示唆）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CA",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低Ca血症（重症化）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "BUN",
+      "op": "gt",
+      "value": 25
+     },
+     "w": 1,
+     "note": "BUN上昇（重症度因子）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 15
+     },
+     "w": 1,
+     "note": "CRP高値（重症化）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "心窩部痛",
+       "腹痛",
+       "背部痛",
+       "嘔吐"
+      ]
+     },
+     "w": 2,
+     "note": "上腹部痛"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "アルコール",
+       "飲酒",
+       "胆石"
+      ]
+     },
+     "w": 1.5,
+     "note": "膵炎の原因"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "not",
+      "of": [
+       {
+        "t": "lab",
+        "item": "LIP",
+        "op": "present"
+       }
+      ]
+     },
+     "w": 0.5,
+     "note": "リパーゼ未測定（AMYは非特異的）"
+    }
+   ],
+   "want": [
+    "LIP"
+   ],
+   "tests": [
+    "造影CT（重症度判定）",
+    "腹部エコー（胆石）",
+    "厚労省重症度判定基準"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "cirrhosis",
+   "name": "肝硬変・慢性肝疾患",
+   "category": "肝",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PLT",
+      "op": "low"
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "ALB",
+        "op": "low"
+       },
+       {
+        "t": "lab",
+        "item": "CHE",
+        "op": "low"
+       },
+       {
+        "t": "lab",
+        "item": "PT_INR",
+        "op": "gt",
+        "value": 1.2
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "血小板減少＋肝合成能低下",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALB",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低Alb"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CHE",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "ChE低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "gt",
+      "value": 1.3
+     },
+     "w": 1,
+     "note": "PT延長"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TBIL",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "ビリルビン上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AST_ALT",
+      "op": "gt",
+      "value": 1
+     },
+     "w": 0.5,
+     "note": "AST優位"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NH3",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "高アンモニア"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "肝硬変",
+       "B型肝炎",
+       "C型肝炎",
+       "アルコール",
+       "NASH",
+       "MASH"
+      ]
+     },
+     "w": 2.5,
+     "note": "慢性肝疾患の既往"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "腹水",
+       "黄疸",
+       "浮腫",
+       "吐血"
+      ]
+     },
+     "w": 1,
+     "note": "非代償期の症状"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "腹部エコー・CT（肝萎縮・脾腫・腹水）",
+    "FIB-4 index",
+    "Child-Pugh分類",
+    "上部消化管内視鏡（静脈瘤）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hepatic_enceph",
+   "name": "高アンモニア血症・肝性脳症",
+   "category": "肝",
+   "gate": {
+    "t": "lab",
+    "item": "NH3",
+    "op": "gt",
+    "value": 100
+   },
+   "gateWeight": 3,
+   "gateNote": "アンモニア上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "NH3",
+      "op": "gt",
+      "value": 200
+     },
+     "w": 1.5,
+     "note": "著明な上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALB",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "肝合成能低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "gt",
+      "value": 1.5
+     },
+     "w": 1,
+     "note": "凝固能低下"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 2,
+     "note": "意識障害"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "肝硬変",
+       "シャント"
+      ]
+     },
+     "w": 2,
+     "note": "肝疾患の既往"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "バルプロ",
+       "デパケン"
+      ]
+     },
+     "w": 1.5,
+     "note": "バルプロ酸"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "便秘",
+       "消化管出血"
+      ]
+     },
+     "w": 1,
+     "note": "誘因"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "採血条件の確認（駆血・放置で偽高値）",
+    "肝機能・凝固",
+    "誘因（便秘・出血・感染）の検索"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "fatty_liver",
+   "name": "脂肪肝（MASLD）",
+   "category": "肝",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "ALT",
+      "op": "high"
+     },
+     {
+      "t": "lab",
+      "item": "AST_ALT",
+      "op": "lt",
+      "value": 1
+     },
+     {
+      "t": "not",
+      "of": [
+       {
+        "t": "lab",
+        "item": "ALT",
+        "op": "gtx",
+        "value": 5
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 1.5,
+   "gateNote": "軽〜中等度のALT優位の上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "TG",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "高TG血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HBA1C",
+      "op": "ge",
+      "value": 6.0
+     },
+     "w": 1,
+     "note": "耐糖能異常"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "GGT",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "γ-GTP上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HDL",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "低HDL"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "腹部エコー",
+    "肝炎ウイルスマーカー",
+    "FIB-4 index"
+   ],
+   "minScore": 2.5
+  },
+  {
+   "id": "acute_liver_failure",
+   "name": "急性肝不全",
+   "category": "肝",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "gt",
+      "value": 1.5
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "ALT",
+        "op": "gtx",
+        "value": 5
+       },
+       {
+        "t": "lab",
+        "item": "TBIL",
+        "op": "gt",
+        "value": 3
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 4,
+   "gateNote": "肝障害＋PT-INR>1.5",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "gt",
+      "value": 2
+     },
+     "w": 1.5,
+     "note": "PT-INR>2"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PT_PCT",
+      "op": "lt",
+      "value": 40
+     },
+     "w": 1.5,
+     "note": "PT活性<40%"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NH3",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "高アンモニア"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "GLU",
+      "op": "lt",
+      "value": 70
+     },
+     "w": 1,
+     "note": "低血糖"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 2,
+     "note": "意識障害（肝性脳症）"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "ワルファリン",
+       "ワーファリン"
+      ]
+     },
+     "w": 2,
+     "note": "ワルファリンによるPT延長の可能性"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "肝臓専門医へ相談",
+    "ウイルス・薬物（アセトアミノフェン濃度）の検索"
+   ],
+   "minScore": 2,
+   "alert": "専門施設への相談を検討"
+  },
+  {
+   "id": "acs",
+   "name": "急性冠症候群（心筋梗塞）・心筋障害",
+   "category": "循環",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "TNT",
+      "op": "high"
+     },
+     {
+      "t": "lab",
+      "item": "TNI",
+      "op": "high"
+     },
+     {
+      "t": "lab",
+      "item": "CKMB",
+      "op": "high"
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "心筋逸脱酵素の上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "TNT",
+        "op": "gt",
+        "value": 0.1
+       },
+       {
+        "t": "lab",
+        "item": "TNI",
+        "op": "gt",
+        "value": 500
+       }
+      ]
+     },
+     "w": 1.5,
+     "note": "トロポニン高度上昇"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "delta",
+        "item": "TNT",
+        "op": "rise_ratio",
+        "value": 1.5
+       },
+       {
+        "t": "delta",
+        "item": "TNI",
+        "op": "rise_ratio",
+        "value": 1.5
+       }
+      ]
+     },
+     "w": 2,
+     "note": "トロポニンの経時的上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CK",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "CK上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CKMB",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "CK-MB上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AST",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "AST上昇"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "胸痛",
+       "胸部圧迫",
+       "胸部絞扼",
+       "放散痛",
+       "冷汗",
+       "肩痛",
+       "顎痛"
+      ]
+     },
+     "w": 3,
+     "note": "虚血性胸痛"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "糖尿病",
+       "高血圧",
+       "脂質異常",
+       "喫煙",
+       "狭心症",
+       "心筋梗塞",
+       "PCI"
+      ]
+     },
+     "w": 1,
+     "note": "冠危険因子"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "gt",
+      "value": 3
+     },
+     "w": 1,
+     "note": "腎機能低下でもトロポニンは上昇しうる"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CK",
+      "op": "gt",
+      "value": 5000
+     },
+     "w": 1,
+     "note": "骨格筋障害も考慮"
+    }
+   ],
+   "want": [
+    "TNT",
+    "TNI",
+    "CK"
+   ],
+   "tests": [
+    "12誘導心電図（直ちに）",
+    "トロポニンの再検（1–3時間後）",
+    "心エコー（壁運動異常）"
+   ],
+   "minScore": 2,
+   "alert": "心電図を直ちに確認"
+  },
+  {
+   "id": "heart_failure",
+   "name": "心不全",
+   "category": "循環",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "BNP",
+      "op": "gt",
+      "value": 100
+     },
+     {
+      "t": "lab",
+      "item": "NTPROBNP",
+      "op": "gt",
+      "value": 400
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "BNP>100 / NT-proBNP>400",
+   "findings": [
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "BNP",
+        "op": "gt",
+        "value": 500
+       },
+       {
+        "t": "lab",
+        "item": "NTPROBNP",
+        "op": "gt",
+        "value": 2000
+       }
+      ]
+     },
+     "w": 1.5,
+     "note": "高度上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NA",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低Na血症（重症心不全）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "腎機能低下（心腎連関）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TBIL",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "うっ血肝"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PO2",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低酸素血症"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "呼吸困難",
+       "息切れ",
+       "起座呼吸",
+       "浮腫",
+       "体重増加",
+       "夜間呼吸困難"
+      ]
+     },
+     "w": 2.5,
+     "note": "うっ血症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "心不全",
+       "心筋梗塞",
+       "弁膜症",
+       "心房細動"
+      ]
+     },
+     "w": 1.5,
+     "note": "心疾患の既往"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "rr",
+      "op": "ge",
+      "value": 22
+     },
+     "w": 0.5,
+     "note": "頻呼吸"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "EGFR",
+      "op": "lt",
+      "value": 30
+     },
+     "w": 1,
+     "note": "高度腎機能低下でもBNPは上昇する"
+    }
+   ],
+   "want": [
+    "BNP",
+    "NTPROBNP"
+   ],
+   "tests": [
+    "胸部X線（肺うっ血・胸水）",
+    "心エコー",
+    "心電図"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "pe",
+   "name": "肺血栓塞栓症",
+   "category": "循環",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "DDIMER",
+      "op": "gt",
+      "value": 1
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "PO2",
+        "op": "lt",
+        "value": 80
+       },
+       {
+        "t": "lab",
+        "item": "PCO2",
+        "op": "lt",
+        "value": 35
+       },
+       {
+        "t": "lab",
+        "item": "SO2",
+        "op": "lt",
+        "value": 95
+       },
+       {
+        "t": "ctx",
+        "field": "spo2",
+        "op": "lt",
+        "value": 94
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "Dダイマー上昇＋低酸素/過換気",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "PCO2",
+      "op": "lt",
+      "value": 35
+     },
+     "w": 1,
+     "note": "低CO₂血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TNT",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "右心負荷による心筋障害"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "BNP",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "右心負荷"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "hr",
+      "op": "ge",
+      "value": 100
+     },
+     "w": 1.5,
+     "note": "頻脈"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "rr",
+      "op": "ge",
+      "value": 22
+     },
+     "w": 1,
+     "note": "頻呼吸"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "呼吸困難",
+       "胸痛",
+       "失神",
+       "下肢腫脹",
+       "下肢痛"
+      ]
+     },
+     "w": 2,
+     "note": "肺塞栓を示唆する症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "がん",
+       "癌",
+       "手術",
+       "長期臥床",
+       "DVT",
+       "深部静脈血栓",
+       "経口避妊薬",
+       "妊娠"
+      ]
+     },
+     "w": 2,
+     "note": "血栓リスク"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "造影CT（肺動脈）",
+    "下肢静脈エコー",
+    "心エコー（右心負荷）",
+    "Wells score"
+   ],
+   "minScore": 2,
+   "alert": "疑えば早期に画像評価"
+  },
+  {
+   "id": "dvt_vte",
+   "name": "静脈血栓症（DVTなど）",
+   "category": "循環",
+   "gate": {
+    "t": "lab",
+    "item": "DDIMER",
+    "op": "gt",
+    "value": 1
+   },
+   "gateWeight": 1.5,
+   "gateNote": "Dダイマー上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "DDIMER",
+      "op": "gt",
+      "value": 5
+     },
+     "w": 1,
+     "note": "Dダイマー高値"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "下肢腫脹",
+       "下肢痛",
+       "片側"
+      ]
+     },
+     "w": 2.5,
+     "note": "下肢症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "がん",
+       "手術",
+       "長期臥床",
+       "骨折",
+       "妊娠"
+      ]
+     },
+     "w": 1.5,
+     "note": "血栓リスク"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 5
+     },
+     "w": 0.5,
+     "note": "炎症でもDダイマーは上昇しうる"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "age",
+      "op": "ge",
+      "value": 65
+     },
+     "w": 0.5,
+     "note": "高齢者は非特異的に上昇しやすい"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "下肢静脈エコー",
+    "Wells score"
+   ],
+   "minScore": 3
+  },
+  {
+   "id": "aortic_dissection",
+   "name": "大動脈解離",
+   "category": "循環",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "DDIMER",
+      "op": "gt",
+      "value": 0.5
+     },
+     {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "胸痛",
+       "背部痛",
+       "移動する痛み",
+       "引き裂かれる",
+       "突然"
+      ]
+     }
+    ]
+   },
+   "gateWeight": 4,
+   "gateNote": "Dダイマー上昇＋急性の胸背部痛",
+   "findings": [
+    {
+     "if": {
+      "t": "kw",
+      "field": "history",
+      "any": [
+       "高血圧",
+       "マルファン",
+       "大動脈瘤"
+      ]
+     },
+     "w": 1.5,
+     "note": "リスク因子"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "ge",
+      "value": 160
+     },
+     "w": 1,
+     "note": "高血圧"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 1.5,
+     "note": "低血圧（破裂・タンポナーデ）"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "造影CT（大動脈）",
+    "血圧の左右差",
+    "心エコー"
+   ],
+   "minScore": 2,
+   "alert": "疑えば直ちに画像評価"
+  },
+  {
+   "id": "hyperthyroid",
+   "name": "甲状腺機能亢進症",
+   "category": "内分泌",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "TSH",
+      "op": "low"
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "FT4",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "FT3",
+        "op": "high"
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "TSH低下＋FT4/FT3上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "ctx",
+      "field": "hr",
+      "op": "ge",
+      "value": 100
+     },
+     "w": 1,
+     "note": "頻脈"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TC",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "低コレステロール"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALP",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "ALP上昇"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "動悸",
+       "体重減少",
+       "発汗",
+       "振戦",
+       "下痢"
+      ]
+     },
+     "w": 1.5,
+     "note": "甲状腺中毒症状"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "TRAb・TSAb",
+    "甲状腺エコー",
+    "心電図（心房細動）"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "hypothyroid",
+   "name": "甲状腺機能低下症",
+   "category": "内分泌",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "TSH",
+      "op": "high"
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "FT4",
+        "op": "low"
+       },
+       {
+        "t": "lab",
+        "item": "FT4",
+        "op": "normal"
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "TSH上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "FT4",
+      "op": "low"
+     },
+     "w": 2,
+     "note": "FT4低下（顕性）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CK",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "CK上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "TC",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "高コレステロール"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NA",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "低Na血症"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "倦怠感",
+       "寒がり",
+       "便秘",
+       "浮腫",
+       "体重増加"
+      ]
+     },
+     "w": 1,
+     "note": "甲状腺機能低下症状"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "抗TPO抗体・抗Tg抗体",
+    "甲状腺エコー"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "adrenal_insuff",
+   "name": "副腎不全",
+   "category": "内分泌",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "NA",
+      "op": "low"
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "K",
+        "op": "high"
+       },
+       {
+        "t": "lab",
+        "item": "GLU",
+        "op": "low"
+       },
+       {
+        "t": "lab",
+        "item": "CORTISOL",
+        "op": "low"
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "低Na＋高K/低血糖",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CORTISOL",
+      "op": "lt",
+      "value": 4
+     },
+     "w": 3,
+     "note": "コルチゾール低値"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "EOS",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "好酸球増多"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "GLU",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低血糖"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "sbp",
+      "op": "lt",
+      "value": 90
+     },
+     "w": 1.5,
+     "note": "低血圧"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "ステロイド",
+       "プレドニン",
+       "プレドニゾロン"
+      ]
+     },
+     "w": 2,
+     "note": "ステロイド中断の可能性"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "倦怠感",
+       "食欲不振",
+       "嘔吐",
+       "腹痛"
+      ]
+     },
+     "w": 1,
+     "note": "非特異的症状"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CORTISOL",
+      "op": "gt",
+      "value": 18
+     },
+     "w": 2,
+     "note": "コルチゾールが十分高い"
+    }
+   ],
+   "want": [
+    "CORTISOL"
+   ],
+   "tests": [
+    "コルチゾール・ACTH（随時）",
+    "迅速ACTH負荷試験"
+   ],
+   "minScore": 2,
+   "alert": "疑えば検体採取後にステロイド投与を検討"
+  },
+  {
+   "id": "malnutrition",
+   "name": "低栄養",
+   "category": "栄養",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "ALB",
+      "op": "lt",
+      "value": 3.0
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "CHE",
+        "op": "low"
+       },
+       {
+        "t": "lab",
+        "item": "TC",
+        "op": "low"
+       },
+       {
+        "t": "lab",
+        "item": "ALC",
+        "op": "lt",
+        "value": 1200
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "低Alb＋ChE・TC・リンパ球数の低下",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALB",
+      "op": "lt",
+      "value": 2.5
+     },
+     "w": 1,
+     "note": "高度低Alb"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "HB",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "貧血"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "age",
+      "op": "ge",
+      "value": 65
+     },
+     "w": 0.5,
+     "note": "高齢"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "食欲不振",
+       "体重減少",
+       "経口摂取不良"
+      ]
+     },
+     "w": 1.5,
+     "note": "摂取不良"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRP",
+      "op": "gt",
+      "value": 5
+     },
+     "w": 1,
+     "note": "炎症による低Alb（栄養以外の要因）"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "体重変化・食事摂取量",
+    "GNRI / CONUT"
+   ],
+   "minScore": 2.5
+  },
+  {
+   "id": "dehydration",
+   "name": "脱水（血液濃縮）",
+   "category": "体液",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "BUN_CRE",
+        "op": "gt",
+        "value": 20
+       },
+       {
+        "t": "any",
+        "of": [
+         {
+          "t": "lab",
+          "item": "NA",
+          "op": "high"
+         },
+         {
+          "t": "lab",
+          "item": "HT",
+          "op": "high"
+         },
+         {
+          "t": "lab",
+          "item": "TP",
+          "op": "high"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "t": "lab",
+      "item": "NA",
+      "op": "gt",
+      "value": 150
+     }
+    ]
+   },
+   "gateWeight": 2,
+   "gateNote": "血液濃縮の所見",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALB",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "Alb上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "UA",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "尿酸上昇"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "hr",
+      "op": "ge",
+      "value": 100
+     },
+     "w": 1,
+     "note": "頻脈"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "口渇",
+       "嘔吐",
+       "下痢",
+       "発汗",
+       "食欲不振"
+      ]
+     },
+     "w": 1.5,
+     "note": "喪失・摂取不良"
+    },
+    {
+     "if": {
+      "t": "ctx",
+      "field": "age",
+      "op": "ge",
+      "value": 65
+     },
+     "w": 0.5,
+     "note": "高齢"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "体重変化・尿量",
+    "エコーで下大静脈径"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "heat_illness",
+   "name": "熱中症",
+   "category": "環境",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "ctx",
+      "field": "temp",
+      "op": "ge",
+      "value": 38
+     },
+     {
+      "t": "kw",
+      "field": "any",
+      "any": [
+       "熱中症",
+       "暑熱",
+       "屋外",
+       "炎天下",
+       "高温",
+       "運動中"
+      ]
+     }
+    ]
+   },
+   "gateWeight": 3,
+   "gateNote": "高体温＋暑熱環境",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CK",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "CK上昇"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "腎機能障害"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "AST",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "肝障害"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "PLT",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "血小板減少（DIC）"
+    },
+    {
+     "if": {
+      "t": "any",
+      "of": [
+       {
+        "t": "ctx",
+        "field": "gcs",
+        "op": "le",
+        "value": 14
+       },
+       {
+        "t": "ctx",
+        "field": "jcs",
+        "op": "ge",
+        "value": 1
+       }
+      ]
+     },
+     "w": 2,
+     "note": "意識障害（Ⅲ度）"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "深部体温",
+    "DICの評価",
+    "肝腎機能の経時的評価"
+   ],
+   "minScore": 2,
+   "alert": "冷却を優先"
+  },
+  {
+   "id": "digoxin_tox",
+   "name": "ジゴキシン中毒",
+   "category": "薬物",
+   "gate": {
+    "t": "lab",
+    "item": "DIGOXIN",
+    "op": "gt",
+    "value": 2.0
+   },
+   "gateWeight": 3,
+   "gateNote": "ジゴキシン血中濃度上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "高K血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "K",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低K血症（毒性増強）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "腎機能低下（蓄積）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "嘔気",
+       "食欲不振",
+       "視覚異常",
+       "徐脈"
+      ]
+     },
+     "w": 2,
+     "note": "中毒症状"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "心電図（徐脈・房室ブロック）",
+    "採血時間（最終内服から6時間以上）の確認"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "lithium_tox",
+   "name": "リチウム中毒",
+   "category": "薬物",
+   "gate": {
+    "t": "lab",
+    "item": "LI",
+    "op": "gt",
+    "value": 1.5
+   },
+   "gateWeight": 3,
+   "gateNote": "リチウム血中濃度上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1.5,
+     "note": "腎機能低下"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "NA",
+      "op": "low"
+     },
+     "w": 1,
+     "note": "低Na（排泄低下）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "振戦",
+       "嘔吐",
+       "下痢",
+       "意識",
+       "運動失調"
+      ]
+     },
+     "w": 2,
+     "note": "中毒症状"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "meds",
+      "any": [
+       "NSAID",
+       "ACE",
+       "ARB",
+       "利尿"
+      ]
+     },
+     "w": 1,
+     "note": "相互作用"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "腎機能",
+    "心電図",
+    "透析適応の検討"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "drug_level_high",
+   "name": "薬物血中濃度の上昇（中毒域）",
+   "category": "薬物",
+   "gate": {
+    "t": "any",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PHT",
+      "op": "gt",
+      "value": 20
+     },
+     {
+      "t": "lab",
+      "item": "VPA",
+      "op": "gt",
+      "value": 100
+     },
+     {
+      "t": "lab",
+      "item": "THEO",
+      "op": "gt",
+      "value": 20
+     },
+     {
+      "t": "lab",
+      "item": "CBZ",
+      "op": "gt",
+      "value": 12
+     },
+     {
+      "t": "lab",
+      "item": "VCM",
+      "op": "gt",
+      "value": 20
+     }
+    ]
+   },
+   "gateWeight": 2.5,
+   "gateNote": "治療域上限を超える血中濃度",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CRE",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "腎機能低下（蓄積）"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "ALB",
+      "op": "low"
+     },
+     "w": 0.5,
+     "note": "低Alb（遊離型増加：フェニトイン・バルプロ酸）"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "嘔吐",
+       "眼振",
+       "ふらつき",
+       "意識",
+       "痙攣",
+       "動悸"
+      ]
+     },
+     "w": 1.5,
+     "note": "中毒症状"
+    }
+   ],
+   "against": [],
+   "want": [],
+   "tests": [
+    "採血タイミング（トラフ/ピーク）の確認",
+    "相互作用の確認"
+   ],
+   "minScore": 2
+  },
+  {
+   "id": "malignancy_hint",
+   "name": "悪性腫瘍の可能性（非特異的所見）",
+   "category": "腫瘍",
+   "gate": {
+    "t": "all",
+    "of": [
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "LDH",
+        "op": "gt",
+        "value": 400
+       },
+       {
+        "t": "lab",
+        "item": "CA_CORR",
+        "op": "gt",
+        "value": 10.5
+       }
+      ]
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "HB",
+        "op": "low"
+       },
+       {
+        "t": "lab",
+        "item": "ALB",
+        "op": "low"
+       },
+       {
+        "t": "lab",
+        "item": "ALP",
+        "op": "high"
+       }
+      ]
+     }
+    ]
+   },
+   "gateWeight": 1.5,
+   "gateNote": "LDH高値/高Ca＋貧血・低Alb・ALP上昇",
+   "findings": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "CA_CORR",
+      "op": "gt",
+      "value": 11
+     },
+     "w": 1,
+     "note": "高Ca血症"
+    },
+    {
+     "if": {
+      "t": "lab",
+      "item": "UA",
+      "op": "high"
+     },
+     "w": 0.5,
+     "note": "尿酸上昇"
+    },
+    {
+     "if": {
+      "t": "kw",
+      "field": "symptoms",
+      "any": [
+       "体重減少",
+       "寝汗",
+       "リンパ節腫脹",
+       "食欲不振"
+      ]
+     },
+     "w": 2,
+     "note": "B症状など"
+    }
+   ],
+   "against": [
+    {
+     "if": {
+      "t": "lab",
+      "item": "RET",
+      "op": "high"
+     },
+     "w": 1,
+     "note": "溶血でもLDHは上昇"
+    }
+   ],
+   "want": [],
+   "tests": [
+    "画像検査（CT）",
+    "腫瘍マーカー・sIL-2R（必要に応じ）"
+   ],
+   "minScore": 3
+  }
+ ],
+ "sampleChecks": [
+  {
+   "id": "hemolysis",
+   "name": "溶血の可能性",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "K",
+      "op": "high"
+     },
+     {
+      "t": "lab",
+      "item": "LDH",
+      "op": "high"
+     }
+    ]
+   },
+   "message": "K高値とLDH高値が同時にあります。採血時の溶血で K・LDH・AST が見かけ上高くなっている可能性があります。検体の溶血の有無を確認し、必要に応じて再検してください。"
+  },
+  {
+   "id": "hemolysis_ast",
+   "name": "溶血の可能性（AST優位）",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "K",
+      "op": "high"
+     },
+     {
+      "t": "lab",
+      "item": "AST",
+      "op": "high"
+     },
+     {
+      "t": "lab",
+      "item": "ALT",
+      "op": "normal"
+     },
+     {
+      "t": "lab",
+      "item": "LDH",
+      "op": "high"
+     }
+    ]
+   },
+   "message": "K・AST・LDHが高くALTが正常です。溶血のパターンに一致します。"
+  },
+  {
+   "id": "pseudo_k_plt",
+   "name": "偽性高K血症（血小板増多）",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "K",
+      "op": "high"
+     },
+     {
+      "t": "lab",
+      "item": "PLT",
+      "op": "gt",
+      "value": 60
+     }
+    ]
+   },
+   "message": "著明な血小板増多があり、凝固時に血小板からKが放出され血清Kが見かけ上高くなることがあります。血漿（ヘパリン採血）で再検を検討してください。"
+  },
+  {
+   "id": "pseudo_k_wbc",
+   "name": "偽性高K血症（白血球増多）",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "K",
+      "op": "high"
+     },
+     {
+      "t": "lab",
+      "item": "WBC",
+      "op": "gt",
+      "value": 100000
+     }
+    ]
+   },
+   "message": "著明な白血球増多があり、偽性高K血症の可能性があります。"
+  },
+  {
+   "id": "edta",
+   "name": "EDTA混入の可能性",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "K",
+      "op": "ge",
+      "value": 7
+     },
+     {
+      "t": "lab",
+      "item": "CA",
+      "op": "lt",
+      "value": 7
+     }
+    ]
+   },
+   "message": "K著明高値かつCa著明低値です。EDTA（血算用）採血管からの混入の可能性があります。採血手順を確認し再検してください。"
+  },
+  {
+   "id": "iv_contamination",
+   "name": "輸液混入の可能性",
+   "if": {
+    "t": "any",
+    "of": [
+     {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "GLU",
+        "op": "gt",
+        "value": 500
+       },
+       {
+        "t": "lab",
+        "item": "TP",
+        "op": "lt",
+        "value": 5
+       }
+      ]
+     },
+     {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "CL",
+        "op": "gt",
+        "value": 120
+       },
+       {
+        "t": "lab",
+        "item": "TP",
+        "op": "lt",
+        "value": 5
+       },
+       {
+        "t": "lab",
+        "item": "HB",
+        "op": "low"
+       }
+      ]
+     }
+    ]
+   },
+   "message": "点滴ラインからの輸液混入（希釈）で、血糖・Cl の上昇やTP・Hb の低下が起きている可能性があります。輸液側と反対の腕から再採血を検討してください。"
+  },
+  {
+   "id": "glycolysis",
+   "name": "採血後の時間経過（解糖）",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "GLU",
+      "op": "lt",
+      "value": 60
+     },
+     {
+      "t": "lab",
+      "item": "WBC",
+      "op": "gt",
+      "value": 50000
+     }
+    ]
+   },
+   "message": "白血球著増時は採血後に検体内でブドウ糖が消費され、血糖が見かけ上低くなることがあります。"
+  },
+  {
+   "id": "pseudo_na",
+   "name": "偽性低Na血症の可能性",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "NA",
+      "op": "low"
+     },
+     {
+      "t": "any",
+      "of": [
+       {
+        "t": "lab",
+        "item": "TG",
+        "op": "gt",
+        "value": 1500
+       },
+       {
+        "t": "lab",
+        "item": "TP",
+        "op": "gt",
+        "value": 10
+       }
+      ]
+     }
+    ]
+   },
+   "message": "著明な高TG血症/高蛋白血症では測定法により Na が見かけ上低くなることがあります。血液ガス分析器（直接法）での Na を確認してください。"
+  },
+  {
+   "id": "clotted",
+   "name": "検体凝固・採血量不足の可能性",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "FIB",
+      "op": "lt",
+      "value": 80
+     },
+     {
+      "t": "lab",
+      "item": "PLT",
+      "op": "lt",
+      "value": 5
+     },
+     {
+      "t": "lab",
+      "item": "PT_INR",
+      "op": "normal"
+     }
+    ]
+   },
+   "message": "フィブリノゲン・血小板が極端に低い一方でPTは正常です。検体の凝固や採血量不足の可能性があります。"
+  },
+  {
+   "id": "gas_air",
+   "name": "血液ガス：気泡混入の可能性",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "PO2",
+      "op": "gt",
+      "value": 130
+     },
+     {
+      "t": "lab",
+      "item": "PCO2",
+      "op": "lt",
+      "value": 30
+     },
+     {
+      "t": "fio2",
+      "op": "le",
+      "value": 0.21
+     }
+    ]
+   },
+   "message": "室内気にもかかわらず PO₂ が高く PCO₂ が低い値です。シリンジ内の気泡混入の可能性があります。"
+  },
+  {
+   "id": "gas_mismatch",
+   "name": "血液ガス：PO₂とSO₂の不一致",
+   "if": {
+    "t": "any",
+    "of": [
+     {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "PO2",
+        "op": "lt",
+        "value": 40
+       },
+       {
+        "t": "lab",
+        "item": "SO2",
+        "op": "gt",
+        "value": 95
+       }
+      ]
+     },
+     {
+      "t": "all",
+      "of": [
+       {
+        "t": "lab",
+        "item": "PO2",
+        "op": "gt",
+        "value": 80
+       },
+       {
+        "t": "lab",
+        "item": "SO2",
+        "op": "lt",
+        "value": 80
+       }
+      ]
+     }
+    ]
+   },
+   "message": "PO₂とSO₂が生理的に一致しません。入力・読み取りの誤り、検体の取り違え、CO中毒などを確認してください。"
+  },
+  {
+   "id": "nh3_handling",
+   "name": "アンモニア：検体処理の影響",
+   "if": {
+    "t": "all",
+    "of": [
+     {
+      "t": "lab",
+      "item": "NH3",
+      "op": "gt",
+      "value": 100
+     },
+     {
+      "t": "not",
+      "of": [
+       {
+        "t": "lab",
+        "item": "ALT",
+        "op": "high"
+       }
+      ]
+     },
+     {
+      "t": "not",
+      "of": [
+       {
+        "t": "lab",
+        "item": "TBIL",
+        "op": "high"
+       }
+      ]
+     }
+    ]
+   },
+   "message": "肝機能異常がないアンモニア高値です。駆血・室温放置・溶血で偽高値になることがあります。氷冷して速やかに測定したか確認してください。"
+  }
+ ]
+}
