@@ -35,6 +35,7 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
+    context.read<AppSettings>().stats.track('result_view');
     _loadPrevious();
   }
 

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/lab_item.dart';
 import '../models/lab_set.dart';
 import '../services/lab_catalog.dart';
+import '../services/settings.dart';
 import '../widgets/common.dart';
 import 'confirm_screen.dart';
 
@@ -56,6 +57,7 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
       showSnack(context, '1項目以上入力してください');
       return;
     }
+    context.read<AppSettings>().stats.track('read_manual');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

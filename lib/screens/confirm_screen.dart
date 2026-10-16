@@ -89,6 +89,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
       }
       await services.db.saveLabSet(set);
       services.dataChanged();
+      services.settings.stats.track('set_saved');
     }
     if (!mounted) return;
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ResultScreen(set: set)));

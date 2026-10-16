@@ -66,6 +66,7 @@ Future<void> startCapture(BuildContext context, CaptureSource source, {String? f
   try {
     final lines = await services.ocr.recognize(path);
     parsed = LabSheetParser(services.catalog).parse(lines);
+    services.settings.stats.track(source == CaptureSource.camera ? 'read_camera' : 'read_photo');
   } catch (e) {
     error = '$e';
   } finally {

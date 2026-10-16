@@ -78,6 +78,7 @@ class _AiScreenState extends State<AiScreen> {
       setState(() => _error = 'APIキーが設定されていません');
       return;
     }
+    services.settings.stats.track(next.length == 1 ? 'ai_advice' : 'ai_chat');
     setState(() {
       _busy = true;
       _error = null;

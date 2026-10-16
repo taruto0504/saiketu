@@ -55,6 +55,7 @@ class _CompareScreenState extends State<CompareScreen> {
   @override
   void initState() {
     super.initState();
+    context.read<AppServices>().settings.stats.track('compare');
     _load();
   }
 

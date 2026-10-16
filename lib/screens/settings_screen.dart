@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
@@ -8,9 +10,11 @@ import '../models/lab_item.dart';
 import '../services/app_services.dart';
 import '../services/lab_catalog.dart';
 import '../services/settings.dart';
+import '../services/usage_stats.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import 'lock_screen.dart';
+import 'profile_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -24,6 +28,13 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 32),
         children: [
+          const SectionHeader('利用者', icon: Icons.badge_outlined),
+          ListTile(
+            title: const Text('職種・資格取得からの年数'),
+            subtitle: Text('${labelOf(kRoles, s.role)}・${labelOf(kYearBands, s.yearsSinceLicense)}'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProfileScreen(editing: true))),
+          ),
           const SectionHeader('表示', icon: Icons.text_fields),
           ListTile(
             title: const Text('文字サイズ'),
@@ -37,17 +48,22 @@ class SettingsScreen extends StatelessWidget {
             ),
             trailing: Text('${(s.textScale * 100).round()}%'),
           ),
-          ListTile(
-            title: const Text('ダークモード'),
-            trailing: DropdownButton<ThemeMode>(
-              value: s.themeMode,
-              items: const [
-                DropdownMenuItem(value: ThemeMode.system, child: Text('端末に合わせる')),
-                DropdownMenuItem(value: ThemeMode.light, child: Text('ライト')),
-                DropdownMenuItem(value: ThemeMode.dark, child: Text('ダーク')),
-              ],
-              onChanged: (v) => s.setThemeMode(v ?? ThemeMode.system),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('背景'),
+              const SizedBox(height: 8),
+              SegmentedButton<ThemeMode>(
+                segments: const [
+                  ButtonSegment(value: ThemeMode.light, label: Text('白'), icon: Icon(Icons.light_mode_outlined)),
+                  ButtonSegment(value: ThemeMode.dark, label: Text('黒'), icon: Icon(Icons.dark_mode_outlined)),
+                  ButtonSegment(value: ThemeMode.system, label: Text('端末に合わせる')),
+                ],
+                selected: {s.themeMode},
+                showSelectedIcon: false,
+                onSelectionChanged: (v) => s.setThemeMode(v.first),
+              ),
+            ]),
           ),
           SwitchListTile(
             title: const Text('結果を「異常値のみ表示」で開く'),
@@ -172,6 +188,22 @@ class SettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ApiKeyScreen())),
           ),
+          const SectionHeader('利用統計（準備中）', icon: Icons.insights_outlined),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text('今後、職種・資格取得からの年数ごとの利用状況を集計する予定です。今はこの端末内に回数を記録しているだけで、どこにも送信していません。',
+                style: TextStyle(fontSize: 13)),
+          ),
+          SwitchListTile(
+            title: const Text('統計の集計が始まったら協力する（匿名）'),
+            value: s.statsConsent,
+            onChanged: s.setStatsConsent,
+          ),
+          ListTile(
+            title: const Text('記録している内容を見る'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showStats(context, s, services),
+          ),
           const SectionHeader('このアプリについて', icon: Icons.info_outline),
           ListTile(
             title: const Text('免責事項'),
@@ -276,6 +308,56 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
       ),
     );
   }
+}
+
+void _showStats(BuildContext context, AppSettings s, AppServices services) {
+  final months = s.stats.months;
+  final keys = months.keys.toList()..sort((a, b) => b.compareTo(a));
+  final payload = const JsonEncoder.withIndent(' ')
+      .convert(s.stats.payload(role: s.role, years: s.yearsSinceLicense, rulesVersion: services.rules.version));
+  Widget row(String a, String b) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(children: [Expanded(child: Text(a)), Text(b, style: const TextStyle(fontWeight: FontWeight.w600))]),
+      );
+  showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('記録している利用統計'),
+      content: SizedBox(
+        width: 480,
+        child: ListView(shrinkWrap: true, children: [
+          const Text('この端末内だけに保存しています（未送信）。検査値・患者情報・日時は含みません。', style: TextStyle(fontSize: 13)),
+          const SizedBox(height: 8),
+          row('職種', labelOf(kRoles, s.role)),
+          row('資格取得からの年数', labelOf(kYearBands, s.yearsSinceLicense)),
+          if (keys.isEmpty) const Padding(padding: EdgeInsets.only(top: 12), child: Text('まだ記録はありません。')),
+          for (final m in keys) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text('${m.replaceFirst('-', '年')}月', style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+            for (final e in months[m]!.entries) row(kStatEvents[e.key] ?? e.key, '${e.value}回'),
+          ],
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            title: const Text('送信する場合のデータ形式（開発者向け）', style: TextStyle(fontSize: 13)),
+            children: [SelectableText(payload, style: const TextStyle(fontFamily: 'monospace', fontSize: 12))],
+          ),
+        ]),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () async {
+            await s.stats.clearCounts();
+            if (ctx.mounted) Navigator.of(ctx).pop();
+            if (context.mounted) showSnack(context, '利用統計の記録を消去しました');
+          },
+          child: const Text('記録を消去'),
+        ),
+        FilledButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('閉じる')),
+      ],
+    ),
+  );
 }
 
 // ───────── 基準値 ─────────

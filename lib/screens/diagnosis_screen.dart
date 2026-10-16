@@ -26,6 +26,7 @@ class DiagnosisController extends ChangeNotifier {
   EvaluationResult? get before => history.length < 2 ? null : history[history.length - 2];
 
   Future<void> init() async {
+    services.settings.stats.track('diag_view');
     if (set.isSaved) {
       history.addAll(await services.db.evaluations(set.id));
     }

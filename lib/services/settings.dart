@@ -6,19 +6,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'usage_stats.dart';
+
 /// アプリ設定。機密性のない設定は SharedPreferences、
 /// パスコード（ハッシュ）と APIキーは端末のセキュア領域に保存する。
 class AppSettings extends ChangeNotifier {
-  AppSettings(this._prefs, this._secure);
+  AppSettings(this._prefs, this._secure) : stats = UsageStats(_prefs);
 
   final SharedPreferences _prefs;
   final FlutterSecureStorage _secure;
+
+  /// 利用統計（端末内に記録するだけで、送信はしない）。
+  final UsageStats stats;
 
   static const defaultModel = 'claude-opus-5-5';
 
   bool get agreed => _prefs.getBool('agreed_v1') ?? false;
   Future<void> setAgreed(bool v) async {
     await _prefs.setBool('agreed_v1', v);
+    notifyListeners();
+  }
+
+  /// 利用者の職種（kRoles のキー）と、資格取得からの年数（kYearBands のキー）。
+  String? get role => _prefs.getString('profile_role');
+  String? get yearsSinceLicense => _prefs.getString('profile_years');
+  bool get hasProfile => role != null && yearsSinceLicense != null;
+  Future<void> setProfile({required String role, required String years}) async {
+    await _prefs.setString('profile_role', role);
+    await _prefs.setString('profile_years', years);
+    notifyListeners();
+  }
+
+  bool get statsConsent => stats.consent;
+  Future<void> setStatsConsent(bool v) async {
+    await stats.setConsent(v);
     notifyListeners();
   }
 

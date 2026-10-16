@@ -135,6 +135,16 @@ void main() {
     await t.pump();
     await t.tap(find.text('同意して始める'));
     await settle(t);
+    // 職種・資格取得からの年数（初回のみ）
+    expect(find.text('はじめに教えてください'), findsOneWidget);
+    expect(t.widget<FilledButton>(find.widgetWithText(FilledButton, '次へ')).onPressed, isNull);
+    await t.tap(find.text('救急救命士'));
+    await t.tap(find.text('1〜2年'));
+    await t.pump();
+    await t.tap(find.text('次へ'));
+    await settle(t);
+    expect(services.settings.role, 'paramedic');
+    expect(services.settings.yearsSinceLicense, '1-2');
     expect(find.text('カメラで読み取る'), findsOneWidget);
     expect(find.text('ケースA'), findsOneWidget);
 
@@ -207,6 +217,7 @@ void main() {
   testWidgets('手入力 → 確認（誤読警告）→ 保存して結果', (t) async {
     phone(t);
     await services.settings.setAgreed(true);
+    await services.settings.setProfile(role: 'nurse', years: '3-5');
     await t.pumpWidget(app());
     await settle(t);
     await t.tap(find.text('手入力'));
@@ -242,6 +253,7 @@ void main() {
     t.view.devicePixelRatio = 2;
     addTearDown(t.view.reset);
     await services.settings.setAgreed(true);
+    await services.settings.setProfile(role: 'nurse', years: '3-5');
     await t.pumpWidget(app());
     await settle(t);
     await t.tap(find.text('ケースA'));
@@ -256,6 +268,7 @@ void main() {
   testWidgets('設定画面・基準値・パスコードロック', (t) async {
     phone(t);
     await services.settings.setAgreed(true);
+    await services.settings.setProfile(role: 'nurse', years: '3-5');
     await t.pumpWidget(app());
     await settle(t);
     await t.tap(find.text('設定'));
@@ -281,6 +294,7 @@ void main() {
   testWidgets('ダークモード・文字サイズ最大でも表示が崩れない', (t) async {
     phone(t);
     await services.settings.setAgreed(true);
+    await services.settings.setProfile(role: 'nurse', years: '3-5');
     await services.settings.setThemeMode(ThemeMode.dark);
     await services.settings.setTextScale(1.6);
     await t.pumpWidget(app());
@@ -292,5 +306,34 @@ void main() {
     expect(find.text('結果'), findsOneWidget);
     await t.drag(find.byType(ListView).first, const Offset(0, -3000));
     await settle(t);
+  });
+
+  testWidgets('背景の切替・利用統計の記録（端末内のみ）', (t) async {
+    phone(t);
+    await services.settings.setAgreed(true);
+    await services.settings.setProfile(role: 'mt', years: '21+');
+    await t.pumpWidget(app());
+    await settle(t);
+    await t.tap(find.text('設定').last);
+    await settle(t);
+    expect(find.text('臨床検査技師・21年以上'), findsOneWidget);
+    await t.tap(find.text('黒'));
+    await settle(t);
+    expect(services.settings.themeMode, ThemeMode.dark);
+    await t.tap(find.text('白'));
+    await settle(t);
+    expect(services.settings.themeMode, ThemeMode.light);
+
+    final st = services.settings.stats;
+    await st.track('diag_view', now: DateTime(2026, 10, 3));
+    await st.track('diag_view', now: DateTime(2026, 10, 20));
+    await st.track('unknown_event');
+    expect(st.months['2026-10']!['diag_view'], 2);
+    expect(st.consent, isFalse);
+    final p = st.payload(role: services.settings.role, years: services.settings.yearsSinceLicense, rulesVersion: 'x');
+    expect(p['role'], 'mt');
+    expect(p['years'], '21+');
+    expect(p.keys, containsAll(['installId', 'months']));
+    expect(p.toString(), isNot(contains('Na')));
   });
 }

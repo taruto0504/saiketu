@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'screens/disclaimer_screen.dart';
 import 'screens/lock_screen.dart';
 import 'screens/main_shell.dart';
+import 'screens/profile_screen.dart';
 import 'services/app_services.dart';
 import 'services/settings.dart';
 import 'theme.dart';
@@ -115,7 +116,11 @@ class _LabSightAppState extends State<LabSightApp> with WidgetsBindingObserver {
           ),
         );
       },
-      home: settings.agreed ? const MainShell() : const DisclaimerScreen(),
+      home: !settings.agreed
+          ? const DisclaimerScreen()
+          : !settings.hasProfile
+              ? const ProfileScreen()
+              : const MainShell(),
     );
   }
 }
