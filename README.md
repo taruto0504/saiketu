@@ -61,6 +61,15 @@ flutter build ipa        # iOS（Xcode で署名の設定が必要）
 - iOS で初めてビルドするときは `cd ios && pod install` が自動で実行されます。
 - Android の書類スキャナ（ML Kit Document Scanner）には Google Play 開発者サービスが必要です。使えない端末では、自動的に通常のカメラ撮影に切り替わります。
 
+## ビルド済みアプリの入手（GitHub Actions）
+
+`labsight/` を変更してプッシュすると、GitHub Actions が自動でビルドします（`.github/workflows/labsight-build.yml`）。
+
+1. GitHub のリポジトリで「Actions」→「LabSight build」→ 最新の実行を開く
+2. 下部の「Artifacts」からダウンロード
+   - `LabSight-android-apk`：Android 用 APK。端末で「提供元不明のアプリ」のインストールを許可して入れられます（開発用の署名）
+   - `LabSight-ios-unsigned`：iOS 用（署名なし）。そのままでは iPhone に入れられません。Mac の Xcode で自分の Apple ID で署名して入れてください
+
 ## AIアドバイスの設定
 
 1. Anthropic Console（https://console.anthropic.com）で API キーを発行します。
