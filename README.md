@@ -106,7 +106,8 @@ lib/
     database.dart             暗号化DB（SQLCipher）
     settings.dart             設定・パスコード・APIキー
   screens/                    各画面
-ios/Runner/AppDelegate.swift  Vision による OCR、VisionKit による書類スキャン
+ios/Runner/AppDelegate.swift  iOS: Vision による OCR、VisionKit による書類スキャン
+android/app/src/main/kotlin/.../MainActivity.kt  Android: ML Kit（日本語）による OCR、ML Kit Document Scanner による書類スキャン
 assets/rules/disease_rules.json  判定ルール
 test/                         ロジックの単体テスト、画面の通しテスト
 ```

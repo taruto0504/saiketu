@@ -52,4 +52,6 @@ flutter {
 dependencies {
     // ML Kit 文字認識の日本語モデル（端末内で処理）
     implementation("com.google.mlkit:text-recognition-japanese:16.0.1")
+    // ML Kit 書類スキャナ（輪郭の自動検出撮影。Google Play 開発者サービスを使用）
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0")
 }
