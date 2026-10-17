@@ -210,6 +210,25 @@ void main() {
       expect(parser.parse([OcrLine('P 3.5 mg/dL')]).values.single.code, 'P');
     });
 
+    test('血液ガス分析装置の印字（項目名・測定日時・PID）', () {
+      final r = parser.parse([
+        'PID : 04558534', 'ｿｸﾃｲ 17 Oct 26 15:57    49486', 'BLOOD GAS', 'pH 7.465', 'PCO2 34.0 mmHg', 'HCO3act 23.9 mmol/L',
+        'BE(vt) 0.7 mmol/L', 'tHb 12.9 g/dL', 'COHb 0.4 %', 'MetHb 0.1 %', 'Na+ 134.9 mmol/L', 'K+ 4.56 mmol/L',
+        'AnGap 13.5 mmol/L', 'Ca++ 1.18 mmol/L', 'Glucose 117 mg/dL', 'Lactate 7.3 mg/dL', 'tCO2 25.0 mmol/L', 'sO2 95.0 %',
+      ].map((t) => OcrLine(t)).toList());
+      final m = {for (final v in r.values) v.code: v};
+      expect(r.skippedPersonalRows, 1);
+      expect(r.takenAt?.month, 10);
+      expect(r.takenAt?.day, 17);
+      expect(r.takenAt?.hour, 15);
+      for (final c in ['PH', 'PCO2', 'HCO3', 'BE', 'HB', 'COHB', 'METHB', 'NA', 'K', 'AG', 'ICA', 'GLU', 'LAC', 'TCO2', 'SO2']) {
+        expect(m.containsKey(c), isTrue, reason: c);
+      }
+      expect(m['ICA']!.value, 1.18);
+      expect(m['AG']!.uncertain, isFalse); // mmol/L = mEq/L
+      expect(m['LAC']!.value, closeTo(0.81, 0.01)); // 7.3 mg/dL → mmol/L
+    });
+
     test('単位の表記ゆれ', () {
       expect(unitKey('10^3/uL'), unitKey('×10^3/μL'));
       expect(unitKey('×10³/μL'), unitKey('×10^3/μL'));

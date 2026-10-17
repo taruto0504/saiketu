@@ -83,7 +83,7 @@ const List<LabItemDef> builtinLabItems = [
       code: 'HB', name: 'Hb', jpName: 'ヘモグロビン', category: _cbc, unit: 'g/dL',
       low: 11.6, high: 16.8, lowM: 13.7, highM: 16.8, lowF: 11.6, highF: 14.8,
       critLow: 6.0, critHigh: 20.0, plausLow: 1.0, plausHigh: 26.0,
-      aliases: ['HB', 'HGB', 'ヘモグロビン', '血色素', '血色素量', 'ヘモグロビン量'],
+      aliases: ['HB', 'HGB', 'ヘモグロビン', '血色素', '血色素量', 'ヘモグロビン量', 'THB', 'CTHB', '総ヘモグロビン'],
       altUnits: [AltUnit('g/L', 0.1), AltUnit('mmol/L', 1.611)]),
   LabItemDef(
       code: 'HT', name: 'Ht', jpName: 'ヘマトクリット', category: _cbc, unit: '%',
@@ -413,13 +413,40 @@ const List<LabItemDef> builtinLabItems = [
       code: 'BE', name: 'BE', jpName: '塩基過剰', category: _gas, unit: 'mEq/L',
       low: -2, high: 2, venousLow: -2, venousHigh: 2,
       critLow: -15, plausLow: -40, plausHigh: 40, isGas: true,
-      aliases: ['BE', 'ABE', 'SBE', 'BE(B)', 'BE(ECF)', 'BEB', 'BEECF', 'ベースエクセス', '塩基過剰'],
+      aliases: ['BE', 'ABE', 'SBE', 'BE(B)', 'BE(ECF)', 'BEB', 'BEECF', 'BE(VT)', 'BEVT', 'CBASE', 'ベースエクセス', '塩基過剰'],
       altUnits: [AltUnit('mmol/L', 1)]),
   LabItemDef(
       code: 'SO2', name: 'SO2', jpName: '酸素飽和度', category: _gas, unit: '%',
       low: 95, high: 100, venousLow: 60, venousHigh: 85,
       plausLow: 5, plausHigh: 100, isGas: true,
-      aliases: ['SO2', 'SAO2', 'SVO2', 'O2SAT', 'SO2(C)', 'SO2C', 'O2HB', 'FO2HB', '酸素飽和度']),
+      aliases: ['SO2', 'SAO2', 'SVO2', 'O2SAT', 'SO2(C)', 'SO2C', '酸素飽和度']),
+  LabItemDef(
+      code: 'O2HB', name: 'O2Hb', jpName: '酸素化ヘモグロビン分画', category: _gas, unit: '%',
+      low: 94, high: 98, venousLow: 60, venousHigh: 85, plausLow: 5, plausHigh: 100, isGas: true,
+      aliases: ['O2HB', 'FO2HB', '酸素化ヘモグロビン', 'オキシヘモグロビン']),
+  LabItemDef(
+      code: 'COHB', name: 'COHb', jpName: '一酸化炭素ヘモグロビン', category: _gas, unit: '%',
+      high: 1.5, critHigh: 10, plausLow: 0, plausHigh: 80,
+      rangeNote: '喫煙者は5〜10%程度まで上がることがある。10%以上は一酸化炭素中毒を疑う',
+      aliases: ['COHB', 'FCOHB', 'カルボキシヘモグロビン', '一酸化炭素ヘモグロビン']),
+  LabItemDef(
+      code: 'METHB', name: 'MetHb', jpName: 'メトヘモグロビン', category: _gas, unit: '%',
+      high: 1.5, critHigh: 10, plausLow: 0, plausHigh: 80,
+      rangeNote: '薬剤（局所麻酔薬・ダプソン・硝酸薬など）で上がる。高いとSpO2が実際の酸素化と合わなくなる',
+      aliases: ['METHB', 'FMETHB', 'MET-HB', 'メトヘモグロビン']),
+  LabItemDef(
+      code: 'HHB', name: 'HHb', jpName: '還元ヘモグロビン分画', category: _gas, unit: '%',
+      plausLow: 0, plausHigh: 100, isGas: true,
+      aliases: ['HHB', 'FHHB', 'DEOXYHB', '還元ヘモグロビン']),
+  LabItemDef(
+      code: 'TCO2', name: 'tCO2', jpName: '総二酸化炭素', category: _gas, unit: 'mmol/L',
+      low: 23, high: 30, plausLow: 3, plausHigh: 60,
+      aliases: ['TCO2', 'CTCO2', '総CO2', '総二酸化炭素']),
+  LabItemDef(
+      code: 'ICA', name: 'iCa', jpName: 'イオン化カルシウム', category: _gas, unit: 'mmol/L',
+      low: 1.15, high: 1.30, critLow: 0.8, critHigh: 1.6, plausLow: 0.3, plausHigh: 3, decimals: 2,
+      rangeNote: '血液ガス分析装置で測るカルシウム（Ca++）。総カルシウム（mg/dL）とは単位も基準も違う',
+      aliases: ['ICA', 'CA++', 'CA2+', 'CA(I)', 'CAION', 'CA++(7.4)', 'イオン化CA', 'イオン化カルシウム', 'CA ION']),
   LabItemDef(
       code: 'LAC', name: '乳酸', jpName: '乳酸', category: _gas, unit: 'mmol/L',
       low: 0.5, high: 2.0, venousLow: 0.5, venousHigh: 2.2,
@@ -431,7 +458,7 @@ const List<LabItemDef> builtinLabItems = [
       low: 8, high: 16, venousLow: 8, venousHigh: 16,
       plausLow: -10, plausHigh: 60, isGas: true,
       rangeNote: 'AG = Na −(Cl + HCO3-)。Kを含む式では基準値が高くなります',
-      aliases: ['AG', 'ANIONGAP', 'アニオンギャップ', 'AGAP', 'AG(K)']),
+      aliases: ['AG', 'ANIONGAP', 'アニオンギャップ', 'AGAP', 'AG(K)', 'ANGAP', 'AN GAP']),
 
   // ───────── 尿検査 ─────────
   // 「蛋白」「pH」「Na」など血液と同じ書き方は、用紙の「尿定性」「尿沈渣」などの欄の中でだけ尿の項目として読む（sectionAliases）。

@@ -173,12 +173,24 @@ class LabSheetParser {
   }
 
   DateTime? _extractDate(String t) {
-    if (!RegExp(r'(採取|採血|検体|測定|受付|報告|日時|DATE)', caseSensitive: false).hasMatch(t)) return null;
+    if (!RegExp(r'(採取|採血|検体|測定|ソクテイ|ｿｸﾃｲ|受付|報告|日時|DATE)', caseSensitive: false).hasMatch(t)) return null;
     final m = RegExp(r'(20\d\d)\s*[/.\-年]\s*(\d{1,2})\s*[/.\-月]\s*(\d{1,2})\s*日?(?:\s*(\d{1,2})\s*[:時]\s*(\d{2}))?').firstMatch(t);
-    if (m == null) return null;
+    // 血液ガス分析装置の「17 Oct 26 15:57」形式
+    final e = m == null
+        ? RegExp(r'(\d{1,2})\s*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*\.?\s*(\d{2,4})(?:\s+(\d{1,2})\s*:\s*(\d{2}))?', caseSensitive: false)
+            .firstMatch(t)
+        : null;
+    if (m == null && e == null) return null;
     try {
-      final d = DateTime(int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!),
-          m.group(4) != null ? int.parse(m.group(4)!) : 0, m.group(5) != null ? int.parse(m.group(5)!) : 0);
+      final d = m != null
+          ? DateTime(int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!),
+              m.group(4) != null ? int.parse(m.group(4)!) : 0, m.group(5) != null ? int.parse(m.group(5)!) : 0)
+          : DateTime(
+              int.parse(e!.group(3)!.length == 2 ? '20${e.group(3)}' : e.group(3)!),
+              'JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC'.indexOf(e.group(2)!.toUpperCase().substring(0, 3)) ~/ 3 + 1,
+              int.parse(e.group(1)!),
+              e.group(4) != null ? int.parse(e.group(4)!) : 0,
+              e.group(5) != null ? int.parse(e.group(5)!) : 0);
       final now = DateTime.now();
       if (d.isAfter(now.add(const Duration(days: 1))) || d.isBefore(now.subtract(const Duration(days: 365 * 3)))) return null;
       return d;
@@ -584,6 +596,7 @@ String unitKey(String u) {
       .replaceAll('^', '')
       .replaceFirst(RegExp(r'^[×xX*]\s*(?=10)'), '');
   if (RegExp(r'^I?U\s*/\s*[lL]$').hasMatch(t)) t = 'U/L';
+  t = t.replaceAll(RegExp('mEq', caseSensitive: false), 'mmol'); // 1価のイオン・AG・HCO3 では mEq/L = mmol/L
   if (RegExp(r'^(sec|s|秒)$', caseSensitive: false).hasMatch(t)) t = '秒';
   return normalizeName(t);
 }
