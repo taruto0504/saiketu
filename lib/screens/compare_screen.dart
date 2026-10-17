@@ -151,12 +151,12 @@ class _CompareScreenState extends State<CompareScreen> {
           Expanded(flex: 4, child: Text(def.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15))),
           Expanded(
             flex: 4,
-            child: Text(x == null ? '—' : formatNumber(x, def.decimals),
+            child: Text(x == null ? '—' : def.formatValue(x),
                 textAlign: TextAlign.right, style: numberStyle(context, size: 16, weight: FontWeight.w500)),
           ),
           Expanded(
             flex: 4,
-            child: Text(y == null ? '—' : formatNumber(y, def.decimals),
+            child: Text(y == null ? '—' : def.formatValue(y),
                 textAlign: TextAlign.right,
                 style: numberStyle(context,
                     size: 18, color: flag.isHigh ? lab.high : flag.isLow ? lab.low : null)),
@@ -166,7 +166,7 @@ class _CompareScreenState extends State<CompareScreen> {
             child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
               Flexible(
                 child: Text(
-                  d == null ? '' : '${d >= 0 ? '+' : '−'}${formatNumber(d.abs(), def.decimals)}',
+                  d == null || def.isQualitative ? '' : '${d >= 0 ? '+' : '−'}${formatNumber(d.abs(), def.decimals)}',
                   textAlign: TextAlign.right,
                   style: numberStyle(context, size: 15, weight: FontWeight.w600, color: color),
                 ),
@@ -314,7 +314,7 @@ class _TrendChart extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.only(left: 12, bottom: 8),
-          child: Text('${def?.name ?? code}（${def?.unit ?? ''}）  基準 ${range?.format(dec) ?? '—'}',
+          child: Text('${def?.name ?? code}（${def?.unit ?? ''}）  基準 ${range?.formatFor(def) ?? '—'}',
               style: const TextStyle(fontWeight: FontWeight.w600)),
         ),
         SizedBox(

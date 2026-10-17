@@ -60,6 +60,7 @@ class LabCatalog extends ChangeNotifier {
   late List<LabItemDef> _all;
   late Map<String, LabItemDef> _byCode;
   late Map<String, String> _aliasIndex;
+  late Map<LabCategory, Map<String, String>> _sectionIndex;
 
   List<LabItemDef> get all => _all;
   List<LabItemDef> get customItems => List.unmodifiable(_custom);
@@ -80,6 +81,13 @@ class LabCatalog extends ChangeNotifier {
     _all = [...builtinLabItems, ..._custom];
     _byCode = {for (final i in _all) i.code: i};
     _aliasIndex = {};
+    _sectionIndex = {LabCategory.urine: {}, LabCategory.sputum: {}};
+    for (final item in _all) {
+      for (final a in item.sectionAliases) {
+        final k = normalizeName(a);
+        if (k.isNotEmpty) _sectionIndex[item.category]?.putIfAbsent(k, () => item.code);
+      }
+    }
     for (final item in _all) {
       for (final a in [item.code, item.name, item.jpName, ...item.aliases]) {
         final k = normalizeName(a);
@@ -93,7 +101,11 @@ class LabCatalog extends ChangeNotifier {
   LabItemDef? byCode(String code) => _byCode[code];
 
   /// 別名から項目コードを引く（例: "クレアチニン" → CRE）。
-  String? codeForAlias(String text) => _aliasIndex[normalizeName(text)];
+  /// [section] が尿検査・喀痰検査のときは、その欄だけの別名（「蛋白」「pH」「Na」など）を先に見る。
+  String? codeForAlias(String text, {LabCategory? section}) {
+    final k = normalizeName(text);
+    return (section == null ? null : _sectionIndex[section]?[k]) ?? _aliasIndex[k];
+  }
 
   /// 別名辞書のキー（OCRの照合用）。
   Iterable<String> get aliasKeys => _aliasIndex.keys;
@@ -178,6 +190,11 @@ class LabCatalog extends ChangeNotifier {
     if (lo == null && hi == null) return null;
     final ok = (lo == null || value >= lo) && (hi == null || value <= hi);
     if (ok) return null;
+    if (def.isQualitative && def.unit.isEmpty) {
+      return PlausibilityIssue(
+          '${def.name} の結果「${formatNumber(value, def.decimals)}」は段階（${def.ordinals.map((o) => o.label).join('・')}）として読めませんでした。原本を確認して選び直してください',
+          null);
+    }
     // 小数点ずれの候補を探す
     final mid = _mid(def);
     double? best;

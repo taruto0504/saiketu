@@ -159,7 +159,8 @@ class EvalEnv {
 
   String fmt(String code, double v) {
     final def = catalog.byCode(code);
-    return formatNumber(v, def?.decimals ?? derived[code]?.decimals ?? 1);
+    if (def != null) return def.formatValue(v);
+    return formatNumber(v, derived[code]?.decimals ?? 1);
   }
 
   String unit(String code) => catalog.byCode(code)?.unit ?? derived[code]?.unit ?? '';
@@ -173,7 +174,7 @@ class EvalEnv {
     final arrow = f.isHigh ? '↑' : (f.isLow ? '↓' : '');
     final r = range(code);
     final u = unit(code);
-    final rs = r.isEmpty || def == null ? '' : '（基準 ${r.format(def.decimals)}）';
+    final rs = r.isEmpty || def == null ? '' : '（基準 ${r.formatFor(def)}）';
     return '${label(code)} ${fmt(code, v)}${u.isEmpty ? '' : ' $u'}$rs$arrow';
   }
 }

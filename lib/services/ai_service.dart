@@ -82,8 +82,8 @@ class AiService {
         _ => '',
       };
       final p = prev[v.code];
-      final pv = p == null ? '' : '（前回 ${formatNumber(p, def.decimals)}）';
-      b.writeln('- ${def.name}｜${formatNumber(v.value!, def.decimals)}$pv｜${r.format(def.decimals)}｜${def.unit}｜$mark');
+      final pv = p == null ? '' : '（前回 ${def.formatValue(p)}）';
+      b.writeln('- ${def.name}｜${def.formatValue(v.value!)}$pv｜${r.formatFor(def)}｜${def.unit}｜$mark');
     }
     final derived = computeDerived(current);
     if (derived.isNotEmpty) {

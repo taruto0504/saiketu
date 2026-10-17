@@ -301,7 +301,16 @@ class _ValueEditorState extends State<_ValueEditor> {
               ),
               Expanded(
                 flex: 4,
-                child: TextField(
+                child: def != null && def.isQualitative
+                    ? DropdownButtonFormField<double>(
+                        initialValue: def.ordinals.any((o) => o.value == v.value) ? v.value : null,
+                        isExpanded: true,
+                        decoration: const InputDecoration(isDense: true, hintText: '結果'),
+                        style: numberStyle(context, size: 20, color: color),
+                        items: [for (final o in def.ordinals) DropdownMenuItem(value: o.value, child: Text(o.label))],
+                        onChanged: (x) => _onValue(x?.toString() ?? ''),
+                      )
+                    : TextField(
                   controller: _c,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
                   textAlign: TextAlign.right,

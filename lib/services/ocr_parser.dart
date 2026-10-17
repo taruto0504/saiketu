@@ -105,6 +105,7 @@ class LabSheetParser {
     int? age;
     String? sex;
     DateTime? takenAt;
+    LabCategory? section;
 
     for (final row in rows) {
       final text = toHalfWidth(row.text).trim();
@@ -118,9 +119,17 @@ class LabSheetParser {
         sex ??= _extractSex(text);
         continue;
       }
+      // 尿検査・喀痰検査の欄の見出しを見て、「蛋白」「pH」「Na」などを尿の項目として読む
+      if (_urineHeader.hasMatch(text)) {
+        section = LabCategory.urine;
+      } else if (_sputumHeader.hasMatch(text)) {
+        section = LabCategory.sputum;
+      } else if (_bloodHeader.hasMatch(text)) {
+        section = null;
+      }
       age ??= _extractAge(text);
       safeText.writeln(text);
-      for (final v in _parseRow(text, row.confidence)) {
+      for (final v in _parseRow(text, row.confidence, section)) {
         if (seen.contains(v.code)) continue;
         seen.add(v.code);
         values.add(v);
@@ -166,24 +175,46 @@ class LabSheetParser {
     }
   }
 
+  static final _urineHeader =
+      RegExp(r'(尿定性|尿沈渣|尿検査|尿一般|尿化学|尿生化学|随時尿|早朝尿|蓄尿|部分尿|尿所見|URINALYSIS|URINE|^[【\[(（]?\s*尿\s*[】\])）]?$)', caseSensitive: false);
+  static final _sputumHeader = RegExp(r'(喀痰|SPUTUM|グラム染色|塗抹検査|^[【\[(（]?\s*痰\s*[】\])）]?$)', caseSensitive: false);
+  static final _bloodHeader = RegExp(r'(血算|末梢血|血液一般|血液学|生化学|凝固|血清|血液ガス|BLOOD|CBC|内分泌|免疫)', caseSensitive: false);
+
   /// 行のトークン化。"Na140" のような項目名と数値の連結も分割する。
-  List<String> _tokens(String text) {
+  List<String> _tokens(String text, LabCategory? section) {
     final raw = text
         .replaceAll(RegExp(r'[|｜]'), ' ')
         .split(RegExp(r'\s+'))
         .where((t) => t.isNotEmpty)
         .toList();
     final out = <String>[];
+    String? last;
     for (final t in raw) {
-      if (catalog.codeForAlias(t) != null) {
+      // 直前の項目が定性の項目で、この語がその結果（P2、G5 など）ならそのまま
+      if (last != null && matchOrdinal(catalog.byCode(last), t) != null) {
         out.add(t);
+        last = null;
+        continue;
+      }
+      final c = catalog.codeForAlias(t, section: section);
+      if (c != null) {
+        out.add(t);
+        last = c;
         continue;
       }
       final m = RegExp(r'^(.*?[^\d.\-+])([-+]?\d+(?:\.\d+)?[HL↑↓*]*)$').firstMatch(t);
-      if (m != null && catalog.codeForAlias(m.group(1)!) != null) {
+      if (m != null && catalog.codeForAlias(m.group(1)!, section: section) != null) {
         out
           ..add(m.group(1)!)
           ..add(m.group(2)!);
+        continue;
+      }
+      // 「蛋白(2+)」「潜血(-)」のように項目名と定性の結果がくっついている
+      final q = RegExp(r'^(.+?)([(（][^()（）]*[)）])$').firstMatch(t);
+      if (q != null && catalog.codeForAlias(q.group(1)!, section: section) != null) {
+        out
+          ..add(q.group(1)!)
+          ..add(q.group(2)!);
         continue;
       }
       out.add(t);
@@ -191,8 +222,8 @@ class LabSheetParser {
     return out;
   }
 
-  List<LabValue> _parseRow(String text, double? conf) {
-    final tokens = _tokens(text);
+  List<LabValue> _parseRow(String text, double? conf, [LabCategory? section]) {
+    final tokens = _tokens(text, section);
     final results = <LabValue>[];
     _Entry? cur;
     var i = 0;
@@ -202,8 +233,10 @@ class LabSheetParser {
       var used = 0;
       for (var k = 3; k >= 1; k--) {
         if (i + k > tokens.length) continue;
+        // 「(-)」「+」のように記号だけの語は項目名に含めない（定性の結果なので）
+        if (k > 1 && tokens.sublist(i + 1, i + k).any((x) => normalizeName(x).isEmpty)) continue;
         final joined = tokens.sublist(i, i + k).join('');
-        final c = catalog.codeForAlias(joined);
+        final c = catalog.codeForAlias(joined, section: section);
         if (c != null) {
           // 数値単独のトークンを項目名とみなさない
           if (_num.hasMatch(joined)) continue;
@@ -227,6 +260,17 @@ class LabSheetParser {
 
   void _consume(_Entry e, List<String> tokens, int i) {
     var t = tokens[i];
+    // 定性・半定量の項目（−、±、1+、5-9/HPF、Class III など）
+    final def = catalog.byCode(e.code);
+    if (def != null && def.isQualitative) {
+      final o = matchOrdinal(def, t);
+      if (e.value == null && o != null) {
+        e.value = o.value;
+        e.raw = t;
+        return;
+      }
+      if (e.value != null && o != null) return; // 用紙の基準（(−) など）は読み飛ばす
+    }
     // 範囲 "138-145" / "(3.6~4.8)"
     final r = _range.firstMatch(t);
     if (r != null && e.value != null) {
@@ -354,7 +398,7 @@ class _Entry {
 
     if (def != null) {
       // 単位換算
-      if (unit != null && unitKey(unit!) != unitKey(def.unit)) {
+      if (unit != null && !def.isQualitative && def.unit.isNotEmpty && unitKey(unit!) != unitKey(def.unit)) {
         AltUnit? alt;
         for (final a in def.altUnits) {
           if (unitKey(a.unit) == unitKey(unit!)) alt = a;
@@ -507,4 +551,23 @@ String unitKey(String u) {
   if (RegExp(r'^I?U\s*/\s*[lL]$').hasMatch(t)) t = 'U/L';
   if (RegExp(r'^(sec|s|秒)$', caseSensitive: false).hasMatch(t)) t = '秒';
   return normalizeName(t);
+}
+
+String _ordKey(String s) => toHalfWidthAscii(s)
+    .toUpperCase()
+    .replaceAll(RegExp('[−ー―‐–—]'), '-')
+    .replaceAll(RegExp('[~～〜]'), '-')
+    .replaceAll(RegExp(r'\s+'), '')
+    .replaceFirst(RegExp(r'/(HPF|HF|視野|毎視野|WF|LPF)$'), '')
+    .replaceAll(RegExp(r'^[(（\[【]+|[)）\]】]+$'), '');
+
+/// 定性・半定量の結果（(−)、2+、10-19/HPF、P2、Class III など）を段階に当てはめる。
+Ordinal? matchOrdinal(LabItemDef? def, String token) {
+  if (def == null || !def.isQualitative) return null;
+  final k = _ordKey(token);
+  if (k.isEmpty) return null;
+  for (final o in def.ordinals) {
+    if (_ordKey(o.label) == k || o.aliases.any((a) => _ordKey(a) == k)) return o;
+  }
+  return null;
 }

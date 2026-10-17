@@ -58,7 +58,8 @@ ParsedSheet parsePages(LabSheetParser parser, List<List<OcrLine>> pages) {
       if (j == first) continue;
       for (final o in perPage[j].where((x) => x.code == v.code && x.value != v.value)) {
         v.uncertain = true;
-        final shown = formatNumber(o.value!, parser.catalog.byCode(v.code)?.decimals ?? 2);
+        final def = parser.catalog.byCode(v.code);
+        final shown = def?.formatValue(o.value!) ?? formatNumber(o.value!, 2);
         v.warnings.add('${j + 1}ページ目にも別の値（$shown）があります。どちらが今回の値か確認してください');
       }
     }

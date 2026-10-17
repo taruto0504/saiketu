@@ -244,7 +244,7 @@ class _ResultsList extends StatelessWidget {
                       child: Text(e.def?.name ?? e.v.code,
                           style: TextStyle(color: lab.critFg, fontWeight: FontWeight.w700, fontSize: 16)),
                     ),
-                    Text(formatNumber(e.v.value!, e.def?.decimals ?? 1),
+                    Text(e.def?.formatValue(e.v.value!) ?? formatNumber(e.v.value!, 1),
                         style: numberStyle(context, size: 24, color: lab.critFg)),
                     Icon(e.flag.isHigh ? Icons.arrow_upward : Icons.arrow_downward, color: lab.critFg,
                         semanticLabel: e.flag.isHigh ? '高値' : '低値'),
@@ -381,7 +381,7 @@ class _ValueRow extends StatelessWidget {
     final color = flag.isHigh ? lab.high : (flag.isLow ? lab.low : scheme.onSurface);
     final dec = def?.decimals ?? 1;
     return Semantics(
-      label: '${def?.name ?? v.code} ${formatNumber(v.value!, dec)} ${def?.unit ?? ''} '
+      label: '${def?.name ?? v.code} ${def?.formatValue(v.value!) ?? formatNumber(v.value!, dec)} ${def?.unit ?? ''} '
           '${flag.isHigh ? '高値' : flag.isLow ? '低値' : ''}${flag.isCritical ? ' 危険値' : ''}',
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
@@ -399,7 +399,7 @@ class _ValueRow extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(def?.name ?? v.code, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: flag.isCritical ? lab.critFg : null)),
                 if (prev != null)
-                  Text('前回 ${formatNumber(prev!, dec)}', style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant)),
+                  Text('前回 ${def?.formatValue(prev!) ?? formatNumber(prev!, dec)}', style: TextStyle(fontSize: 11.5, color: scheme.onSurfaceVariant)),
               ]),
             ),
             Expanded(
@@ -408,7 +408,7 @@ class _ValueRow extends StatelessWidget {
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
-                    child: Text(formatNumber(v.value!, dec), style: numberStyle(context, size: 23, color: color)),
+                    child: Text(def?.formatValue(v.value!) ?? formatNumber(v.value!, dec), style: numberStyle(context, size: 23, color: color)),
                   ),
                 ),
                 SizedBox(
@@ -423,7 +423,7 @@ class _ValueRow extends StatelessWidget {
             Expanded(
               flex: 5,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(range.format(dec), style: const TextStyle(fontSize: 13.5, fontFeatures: [FontFeature.tabularFigures()])),
+                Text(range.formatFor(def), style: const TextStyle(fontSize: 13.5, fontFeatures: [FontFeature.tabularFigures()])),
                 if (range.source != RefSource.defaults)
                   Text(range.source.label, style: TextStyle(fontSize: 10.5, color: scheme.primary)),
               ]),

@@ -139,6 +139,16 @@ Map<String, DerivedValue> computeDerived(LabSet set) {
   if (bun != null && cre != null && cre > 0) {
     out['BUN_CRE'] = DerivedValue('BUN_CRE', 'BUN/Cre比', bun / cre, formula: 'BUN ÷ Cre', note: '>20で腎前性・消化管出血・異化亢進などを示唆', decimals: 1);
   }
+  final una = g('U_NA'), ucr = g('U_CRE'), uun = g('U_UN'), sna = g('NA');
+  if (una != null && ucr != null && ucr > 0 && sna != null && sna > 0 && cre != null && cre > 0) {
+    out['FENA'] = DerivedValue('FENA', 'FENa（尿中Na排泄率）', (una * cre) / (sna * ucr) * 100,
+        unit: '%', formula: '(尿中Na × 血清Cr) ÷ (血清Na × 尿中Cr) × 100',
+        note: '<1%で腎前性（脱水・心不全など）、>2%で腎性（急性尿細管壊死など）。利尿薬使用中は FEUN を参考に', decimals: 2);
+  }
+  if (uun != null && ucr != null && ucr > 0 && bun != null && bun > 0 && cre != null && cre > 0) {
+    out['FEUN'] = DerivedValue('FEUN', 'FEUN（尿中UN排泄率）', (uun * cre) / (bun * ucr) * 100,
+        unit: '%', formula: '(尿中UN × 血清Cr) ÷ (BUN × 尿中Cr) × 100', note: '<35%で腎前性、>50%で腎性。利尿薬使用中でも使える', decimals: 1);
+  }
   final ast = g('AST'), alt = g('ALT');
   if (ast != null && alt != null && alt > 0) {
     out['AST_ALT'] = DerivedValue('AST_ALT', 'AST/ALT比', ast / alt, formula: 'AST ÷ ALT', note: '>2でアルコール性・筋由来・溶血など、<1で脂肪肝・慢性肝炎など', decimals: 2);

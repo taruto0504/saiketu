@@ -11,6 +11,8 @@ enum LabCategory {
   lipid('脂質'),
   cardiac('心筋'),
   gas('血液ガス'),
+  urine('尿検査'),
+  sputum('喀痰検査'),
   other('その他'),
   custom('追加項目');
 
@@ -27,6 +29,26 @@ class AltUnit {
   final String unit;
   final double factor;
 }
+
+/// 定性・半定量の結果（−、±、1+ や Class III など）。value の大小で判定する。
+class Ordinal {
+  const Ordinal(this.value, this.label, [this.aliases = const []]);
+  final double value;
+  final String label;
+
+  /// 用紙での別の書き方（(−)、陰性、++ など）。
+  final List<String> aliases;
+}
+
+/// 試験紙法の一般的な段階（−、±、1+〜4+）。
+const qualitativeScale = [
+  Ordinal(0, '−', ['-', '(-)', '陰性', 'NEG', 'NEGATIVE', 'N']),
+  Ordinal(0.5, '±', ['(±)', '+-', '+/-', '弱陽性', '偽陽性']),
+  Ordinal(1, '1+', ['(1+)', '+', '(+)', '陽性', 'POS', 'POSITIVE', '少数', '少量']),
+  Ordinal(2, '2+', ['(2+)', '++', '(++)', '中等量']),
+  Ordinal(3, '3+', ['(3+)', '+++', '(+++)', '多数', '多量']),
+  Ordinal(4, '4+', ['(4+)', '++++', '(++++)']),
+];
 
 class LabItemDef {
   const LabItemDef({
@@ -53,6 +75,8 @@ class LabItemDef {
     this.isCustom = false,
     this.isGas = false,
     this.rangeNote,
+    this.ordinals = const [],
+    this.sectionAliases = const [],
   });
 
   /// 内部コード（例: CRE）。
@@ -92,7 +116,23 @@ class LabItemDef {
   final bool isGas;
   final String? rangeNote;
 
+  /// 定性・半定量の段階。空なら数値の項目。
+  final List<Ordinal> ordinals;
+
+  /// 尿検査・喀痰検査の欄の中でだけ使う別名（例: 尿検査欄の「蛋白」「pH」「Na」）。
+  final List<String> sectionAliases;
+
   String get displayName => name;
+
+  bool get isQualitative => ordinals.isNotEmpty;
+
+  /// 表示用の値（定性の項目は 1+ などの段階、それ以外は数値）。
+  String formatValue(double v) {
+    for (final o in ordinals) {
+      if (o.value == v) return o.label;
+    }
+    return formatNumber(v, decimals);
+  }
 
   Map<String, dynamic> toJson() => {
         'code': code,
@@ -136,6 +176,18 @@ class RefRange {
   final RefSource source;
 
   bool get isEmpty => low == null && high == null;
+
+  /// 項目に合わせた表示（定性の項目は「−〜±」のように段階で）。
+  String formatFor(LabItemDef? def) {
+    if (def != null && def.isQualitative && def.unit.isEmpty) {
+      final ok = [
+        for (final o in def.ordinals)
+          if ((low == null || o.value >= low!) && (high == null || o.value <= high!)) o.label
+      ];
+      if (ok.isNotEmpty && ok.length < def.ordinals.length) return ok.length == 1 ? ok.first : '${ok.first}〜${ok.last}';
+    }
+    return format(def?.decimals ?? 1);
+  }
 
   String format(int decimals) {
     String f(double v) => formatNumber(v, decimals);

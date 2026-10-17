@@ -147,6 +147,52 @@ void main() {
       expect(r.takenAt?.hour, 8);
     });
 
+    test('尿検査・喀痰検査（定性の結果と欄の見分け）', () {
+      final r = parser.parse([
+        '生化学', 'Na 135', 'Cr 2.10', 'BUN 48', 'pH 7.32',
+        '【尿定性】', '比重 1.025', 'pH 5.5', '蛋白 (2+) (-)', '糖 (-)', '潜血(3+)', 'ウロビリノーゲン N', '亜硝酸塩 (+)',
+        '【尿沈渣】', '赤血球 10-19 /HPF', '白血球 50~99/HPF', '尿中Na 12', '尿中Cr 120',
+        '喀痰検査', 'Miller&Jones P2', 'Geckler分類 5', 'GPC 3+', '抗酸菌塗抹 (±)', '結核菌群PCR 陰性', '喀痰細胞診 ClassⅢ',
+      ].map((t) => OcrLine(t)).toList());
+      final m = {for (final v in r.values) v.code: v};
+      String show(String c) => catalog.byCode(c)!.formatValue(m[c]!.value!);
+      expect(m['PH']!.value, 7.32); // 血液の pH
+      expect(m['U_PH']!.value, 5.5); // 尿の欄の pH
+      expect(m['U_SG']!.value, 1.025);
+      expect(show('U_PRO'), '2+');
+      expect(show('U_GLU'), '−');
+      expect(show('U_OB'), '3+');
+      expect(show('U_URO'), '±（正常）');
+      expect(show('U_NIT'), '+');
+      expect(show('U_RBC'), '10-19');
+      expect(show('U_WBC'), '50-99');
+      expect(show('SP_MJ'), 'P2');
+      expect(show('SP_GECKLER'), '5群');
+      expect(show('SP_GPC'), '3+');
+      expect(show('SP_AFB'), '±');
+      expect(show('SP_TBPCR'), '−');
+      expect(show('SP_CYTO'), 'Class III');
+      expect(m['U_PRO']!.uncertain, isFalse);
+      expect(catalog.flagFor(m['U_PRO']!).isHigh, isTrue);
+      expect(catalog.flagFor(m['U_GLU']!).isAbnormal, isFalse);
+      expect(catalog.flagFor(m['SP_AFB']!).isHigh, isTrue);
+      final rng = catalog.rangeFor(m['U_PRO']!);
+      expect(rng.formatFor(catalog.byCode('U_PRO')), '−〜±');
+      // FENa
+      final set = LabSet(values: r.values);
+      final d = computeDerived(set);
+      expect(d['FENA']!.value, closeTo(12 * 2.10 / (135 * 120) * 100, 1e-9));
+    });
+
+    test('尿・喀痰の判定ルール', () {
+      LabSet s(List<String> lines) => LabSet(values: parser.parse(lines.map((t) => OcrLine(t)).toList()).values);
+      final engine = RuleEngine(RuleSet.fromJsonString(File('assets/rules/disease_rules.json').readAsStringSync()), catalog);
+      String top(LabSet x) => engine.evaluate(x).diseases.first.id;
+      expect(top(s(['CRP 9.5', '【尿定性】', '亜硝酸塩 (+)', '白血球反応 3+', '【尿沈渣】', '白血球 50-99/HPF'])), 'uti');
+      expect(top(s(['喀痰', '抗酸菌塗抹 2+', '結核菌群PCR 陽性'])), 'tb_suspect');
+      expect(top(s(['BUN 52', 'Cr 1.8', 'Na 145', '尿中Na 10', '尿中Cr 150'])), 'prerenal');
+    });
+
     test('単位の表記ゆれ', () {
       expect(unitKey('10^3/uL'), unitKey('×10^3/μL'));
       expect(unitKey('×10³/μL'), unitKey('×10^3/μL'));

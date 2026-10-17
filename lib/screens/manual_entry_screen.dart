@@ -127,7 +127,15 @@ class _ManualEntryScreenState extends State<ManualEntryScreen> {
           ),
           Expanded(
             flex: 3,
-            child: TextField(
+            child: def.isQualitative
+                ? DropdownButtonFormField<double>(
+                    initialValue: double.tryParse(_ctrl(def.code).text),
+                    isExpanded: true,
+                    decoration: const InputDecoration(isDense: true, hintText: '—'),
+                    items: [for (final o in def.ordinals) DropdownMenuItem(value: o.value, child: Text(o.label))],
+                    onChanged: (x) => setState(() => _ctrl(def.code).text = x?.toString() ?? ''),
+                  )
+                : TextField(
               controller: _ctrl(def.code),
               keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
               textAlign: TextAlign.right,

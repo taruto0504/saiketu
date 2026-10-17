@@ -15,7 +15,21 @@ const _meta = LabCategory.metabolic;
 const _lipid = LabCategory.lipid;
 const _card = LabCategory.cardiac;
 const _gas = LabCategory.gas;
+const _urine = LabCategory.urine;
+const _sputum = LabCategory.sputum;
 const _other = LabCategory.other;
+
+// 尿沈渣（/HPF）の段階。値は各段階の下限。
+const _sediment = [
+  Ordinal(0, '<1', ['0', '0-1', '<1', '1未満', '0~1']),
+  Ordinal(1, '1-4', ['1~4', '1-4', '1-5', '1~5', '2-4']),
+  Ordinal(5, '5-9', ['5~9', '5-9', '5-10', '5~10']),
+  Ordinal(10, '10-19', ['10~19', '10-19', '10-20', '10~20']),
+  Ordinal(20, '20-29', ['20~29', '20-29', '20-30']),
+  Ordinal(30, '30-49', ['30~49', '30-49', '30-50']),
+  Ordinal(50, '50-99', ['50~99', '50-99', '50-100']),
+  Ordinal(100, '100以上', ['>100', '≧100', '>=100', '100<', '100~', '多数', '無数', '1視野全体']),
+];
 
 /// JCCLS（日本臨床検査標準協議会）の共用基準範囲を既定値にしている項目。
 /// 共用基準範囲は、健常者のデータから作られた全国共通の基準範囲（2014年公開）。ALP・LD は IFCC 法の値。
@@ -418,6 +432,163 @@ const List<LabItemDef> builtinLabItems = [
       plausLow: -10, plausHigh: 60, isGas: true,
       rangeNote: 'AG = Na −(Cl + HCO3-)。Kを含む式では基準値が高くなります',
       aliases: ['AG', 'ANIONGAP', 'アニオンギャップ', 'AGAP', 'AG(K)']),
+
+  // ───────── 尿検査 ─────────
+  // 「蛋白」「pH」「Na」など血液と同じ書き方は、用紙の「尿定性」「尿沈渣」などの欄の中でだけ尿の項目として読む（sectionAliases）。
+  LabItemDef(
+      code: 'U_SG', name: '尿比重', jpName: '尿比重', category: _urine, unit: '',
+      low: 1.005, high: 1.030, plausLow: 1.000, plausHigh: 1.060, decimals: 3,
+      aliases: ['尿比重', 'U-SG', 'USG', '尿中比重'], sectionAliases: ['比重', 'SG', 'S.G.']),
+  LabItemDef(
+      code: 'U_PH', name: '尿pH', jpName: '尿pH', category: _urine, unit: '',
+      low: 5.0, high: 7.5, plausLow: 4.0, plausHigh: 9.5,
+      aliases: ['尿pH', '尿PH', 'U-pH', '尿中pH'], sectionAliases: ['pH', 'PH']),
+  LabItemDef(
+      code: 'U_PRO', name: '尿蛋白', jpName: '尿蛋白（定性）', category: _urine, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      aliases: ['尿蛋白', '尿タンパク', '尿たんぱく', 'U-PRO', '尿蛋白定性'], sectionAliases: ['蛋白', 'タンパク', 'たんぱく', '蛋白定性', 'PRO', 'TP']),
+  LabItemDef(
+      code: 'U_GLU', name: '尿糖', jpName: '尿糖（定性）', category: _urine, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      aliases: ['尿糖', 'U-GLU', '尿グルコース', '尿糖定性'], sectionAliases: ['糖', 'GLU', 'グルコース', 'ブドウ糖', '糖定性']),
+  LabItemDef(
+      code: 'U_OB', name: '尿潜血', jpName: '尿潜血（定性）', category: _urine, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      aliases: ['尿潜血', '尿潜血反応', 'U-OB', 'U-BLD'], sectionAliases: ['潜血', '潜血反応', 'OB', 'BLD']),
+  LabItemDef(
+      code: 'U_KET', name: '尿ケトン体', jpName: '尿ケトン体（定性）', category: _urine, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      aliases: ['尿ケトン体', '尿ケトン', 'U-KET'], sectionAliases: ['ケトン体', 'ケトン', 'KET']),
+  LabItemDef(
+      code: 'U_BIL', name: '尿ビリルビン', jpName: '尿ビリルビン（定性）', category: _urine, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      aliases: ['尿ビリルビン', 'U-BIL'], sectionAliases: ['ビリルビン', 'BIL']),
+  LabItemDef(
+      code: 'U_URO', name: 'ウロビリノーゲン', jpName: '尿ウロビリノーゲン', category: _urine, unit: '',
+      low: 0.5, high: 0.5, plausLow: 0, plausHigh: 4,
+      ordinals: [
+        Ordinal(0, '−', ['-', '(-)', '陰性']),
+        Ordinal(0.5, '±（正常）', ['±', '(±)', 'N', 'NORMAL', '正常', '+-']),
+        Ordinal(1, '1+', ['(1+)', '+', '(+)']),
+        Ordinal(2, '2+', ['(2+)', '++']),
+        Ordinal(3, '3+', ['(3+)', '+++']),
+        Ordinal(4, '4+', ['(4+)', '++++']),
+      ],
+      rangeNote: '±（正常）が基準。−は胆道閉塞、陽性は肝障害・溶血を疑う',
+      aliases: ['ウロビリノーゲン', 'ウロビリノゲン', 'U-URO', 'URO', 'UBG']),
+  LabItemDef(
+      code: 'U_NIT', name: '亜硝酸塩', jpName: '尿亜硝酸塩', category: _urine, unit: '',
+      high: 0, plausLow: 0, plausHigh: 1,
+      ordinals: [Ordinal(0, '−', ['-', '(-)', '陰性']), Ordinal(1, '+', ['(+)', '1+', '陽性', '(1+)'])],
+      aliases: ['亜硝酸塩', '亜硝酸', '尿亜硝酸塩', 'U-NIT'], sectionAliases: ['NIT']),
+  LabItemDef(
+      code: 'U_LEU', name: '尿白血球反応', jpName: '尿白血球反応（エステラーゼ）', category: _urine, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      aliases: ['尿白血球反応', '白血球反応', '白血球エステラーゼ', '尿中白血球反応', 'U-LEU'], sectionAliases: ['LEU', 'WBC定性']),
+  LabItemDef(
+      code: 'U_RBC', name: '尿沈渣 赤血球', jpName: '尿沈渣 赤血球（/HPF）', category: _urine, unit: '/HPF',
+      high: 4, plausLow: 0, plausHigh: 1000, decimals: 0, ordinals: _sediment,
+      aliases: ['尿沈渣赤血球', '沈渣赤血球', '尿中赤血球', 'U-RBC', '沈渣RBC'], sectionAliases: ['赤血球', 'RBC']),
+  LabItemDef(
+      code: 'U_WBC', name: '尿沈渣 白血球', jpName: '尿沈渣 白血球（/HPF）', category: _urine, unit: '/HPF',
+      high: 4, plausLow: 0, plausHigh: 1000, decimals: 0, ordinals: _sediment,
+      aliases: ['尿沈渣白血球', '沈渣白血球', '尿中白血球', 'U-WBC', '沈渣WBC'], sectionAliases: ['白血球', 'WBC']),
+  LabItemDef(
+      code: 'U_BACT', name: '尿中細菌', jpName: '尿沈渣 細菌', category: _urine, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      aliases: ['尿中細菌', '沈渣細菌', 'U-BACT'], sectionAliases: ['細菌', 'BACT', 'BACTERIA']),
+  LabItemDef(
+      code: 'UPCR', name: '尿蛋白/Cr比', jpName: '尿蛋白/クレアチニン比', category: _urine, unit: 'g/gCr',
+      high: 0.15, plausLow: 0, plausHigh: 50, decimals: 2,
+      aliases: ['尿蛋白/Cr比', '尿蛋白/クレアチニン比', '尿蛋白クレアチニン比', 'UPCR', 'UP/UCr', 'UP/Cr', '尿蛋白/Cre比']),
+  LabItemDef(
+      code: 'UACR', name: '尿アルブミン/Cr比', jpName: '尿アルブミン/クレアチニン比', category: _urine, unit: 'mg/gCr',
+      high: 30, plausLow: 0, plausHigh: 30000, decimals: 0,
+      aliases: ['尿アルブミン/Cr比', '尿中アルブミン/Cr比', 'UACR', '尿アルブミン指数', 'アルブミン/クレアチニン比', '尿中Alb/Cr']),
+  LabItemDef(
+      code: 'U_NA', name: '尿中Na', jpName: '尿中ナトリウム', category: _urine, unit: 'mEq/L',
+      plausLow: 1, plausHigh: 400, decimals: 0,
+      rangeNote: '基準値なし（食事・体液量で変わる）。FENa の計算に使う',
+      aliases: ['尿中Na', '尿Na', 'U-Na', '尿中ナトリウム', 'UNa'], sectionAliases: ['Na', 'ナトリウム']),
+  LabItemDef(
+      code: 'U_K', name: '尿中K', jpName: '尿中カリウム', category: _urine, unit: 'mEq/L',
+      plausLow: 1, plausHigh: 300, decimals: 0,
+      aliases: ['尿中K', '尿K', 'U-K', '尿中カリウム', 'UK'], sectionAliases: ['K', 'カリウム']),
+  LabItemDef(
+      code: 'U_CL', name: '尿中Cl', jpName: '尿中クロール', category: _urine, unit: 'mEq/L',
+      plausLow: 1, plausHigh: 400, decimals: 0,
+      aliases: ['尿中Cl', '尿Cl', 'U-Cl', '尿中クロール'], sectionAliases: ['Cl', 'クロール']),
+  LabItemDef(
+      code: 'U_CRE', name: '尿中Cr', jpName: '尿中クレアチニン', category: _urine, unit: 'mg/dL',
+      plausLow: 1, plausHigh: 700, decimals: 1,
+      aliases: ['尿中Cr', '尿中Cre', '尿Cr', '尿CRE', 'U-Cr', 'U-CRE', '尿中クレアチニン'], sectionAliases: ['Cr', 'CRE', 'Cre', 'クレアチニン']),
+  LabItemDef(
+      code: 'U_UN', name: '尿中UN', jpName: '尿中尿素窒素', category: _urine, unit: 'mg/dL',
+      plausLow: 10, plausHigh: 3000, decimals: 0,
+      aliases: ['尿中UN', '尿中BUN', '尿中尿素窒素', 'U-UN', '尿UN'], sectionAliases: ['UN', 'BUN', '尿素窒素']),
+  LabItemDef(
+      code: 'U_OSM', name: '尿浸透圧', jpName: '尿浸透圧', category: _urine, unit: 'mOsm/kgH2O',
+      low: 50, high: 1300, plausLow: 30, plausHigh: 1500, decimals: 0,
+      aliases: ['尿浸透圧', '尿中浸透圧', 'U-OSM', 'Uosm'], sectionAliases: ['浸透圧', 'OSM']),
+
+  // ───────── 喀痰検査 ─────────
+  LabItemDef(
+      code: 'SP_MJ', name: 'Miller&Jones', jpName: '喀痰の肉眼的性状（Miller & Jones）', category: _sputum, unit: '',
+      plausLow: 0, plausHigh: 4,
+      ordinals: [
+        Ordinal(0, 'M1', ['M-1']), Ordinal(1, 'M2', ['M-2']), Ordinal(2, 'P1', ['P-1']), Ordinal(3, 'P2', ['P-2']), Ordinal(4, 'P3', ['P-3']),
+      ],
+      rangeNote: 'M＝唾液・粘液性、P＝膿性。P1〜P3 は検査に適した痰',
+      aliases: ['Miller&Jones', 'Miller-Jones', 'MillerJones', 'ミラー&ジョーンズ', 'ミラージョーンズ', '肉眼的性状', '喀痰性状', '痰の性状']),
+  LabItemDef(
+      code: 'SP_GECKLER', name: 'Geckler分類', jpName: '喀痰の品質（Geckler分類）', category: _sputum, unit: '',
+      plausLow: 1, plausHigh: 6, decimals: 0,
+      ordinals: [
+        Ordinal(1, '1群', ['1', 'G1', 'GROUP1', '1群']), Ordinal(2, '2群', ['2', 'G2', 'GROUP2']), Ordinal(3, '3群', ['3', 'G3', 'GROUP3']),
+        Ordinal(4, '4群', ['4', 'G4', 'GROUP4']), Ordinal(5, '5群', ['5', 'G5', 'GROUP5']), Ordinal(6, '6群', ['6', 'G6', 'GROUP6']),
+      ],
+      rangeNote: '4・5群は良質な痰（白血球が多く扁平上皮が少ない）。1〜3群は唾液が多く、培養結果の解釈に注意',
+      aliases: ['Geckler分類', 'Geckler', 'ゲックラー', 'ゲックラー分類', 'Geckler group']),
+  LabItemDef(
+      code: 'SP_GPC', name: 'グラム陽性球菌', jpName: '喀痰グラム染色 グラム陽性球菌（GPC）', category: _sputum, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      rangeNote: '肺炎球菌・黄色ブドウ球菌などを示唆',
+      aliases: ['グラム陽性球菌', 'GPC', 'グラム陽性双球菌', 'GPDC'], sectionAliases: []),
+  LabItemDef(
+      code: 'SP_GNR', name: 'グラム陰性桿菌', jpName: '喀痰グラム染色 グラム陰性桿菌（GNR）', category: _sputum, unit: '',
+      high: 0.5, plausLow: 0, plausHigh: 4, ordinals: qualitativeScale,
+      rangeNote: 'インフルエンザ菌・クレブシエラ・緑膿菌などを示唆',
+      aliases: ['グラム陰性桿菌', 'GNR', 'グラム陰性短桿菌', 'GNCB']),
+  LabItemDef(
+      code: 'SP_AFB', name: '抗酸菌塗抹', jpName: '喀痰 抗酸菌塗抹', category: _sputum, unit: '',
+      high: 0, plausLow: 0, plausHigh: 3,
+      ordinals: [
+        Ordinal(0, '−', ['-', '(-)', '陰性', 'G0', 'ガフキー0']),
+        Ordinal(0.5, '±', ['(±)', '+-', 'G1', 'ガフキー1']),
+        Ordinal(1, '1+', ['(1+)', '+', '(+)', '陽性', 'G2', 'ガフキー2']),
+        Ordinal(2, '2+', ['(2+)', '++', 'G5', 'ガフキー5']),
+        Ordinal(3, '3+', ['(3+)', '+++', 'G9', 'ガフキー9']),
+      ],
+      rangeNote: '陽性（±を含む）は結核などの抗酸菌症を疑う。結核が否定されるまで空気感染対策',
+      aliases: ['抗酸菌塗抹', '抗酸菌染色', '抗酸菌塗抹検査', 'チールネールゼン', 'Ziehl-Neelsen', 'AFB', '抗酸菌', 'ガフキー']),
+  LabItemDef(
+      code: 'SP_TBPCR', name: '結核菌群PCR', jpName: '結核菌群 核酸増幅検査（PCR・LAMP）', category: _sputum, unit: '',
+      high: 0, plausLow: 0, plausHigh: 1,
+      ordinals: [Ordinal(0, '−', ['-', '(-)', '陰性', '検出せず', 'NOT DETECTED']), Ordinal(1, '+', ['(+)', '1+', '陽性', '検出', 'DETECTED'])],
+      rangeNote: '陽性は結核を強く疑う',
+      aliases: ['結核菌群PCR', '結核菌PCR', 'TB-PCR', 'MTB-PCR', '結核菌群核酸増幅', '結核菌群LAMP', 'TB-LAMP', '結核菌群']),
+  LabItemDef(
+      code: 'SP_CYTO', name: '喀痰細胞診', jpName: '喀痰細胞診（Class）', category: _sputum, unit: '',
+      high: 2, plausLow: 1, plausHigh: 5,
+      ordinals: [
+        Ordinal(1, 'Class I', ['I', 'Ⅰ', 'CLASS1', 'CLASSI', 'CLASSⅠ', 'クラス1', 'クラスI']),
+        Ordinal(2, 'Class II', ['II', 'Ⅱ', 'CLASS2', 'CLASSII', 'CLASSⅡ', 'クラス2', 'クラスII']),
+        Ordinal(3, 'Class III', ['III', 'Ⅲ', 'CLASS3', 'CLASSIII', 'CLASSⅢ', 'クラス3', 'クラスIII']),
+        Ordinal(4, 'Class IV', ['IV', 'Ⅳ', 'CLASS4', 'CLASSIV', 'CLASSⅣ', 'クラス4', 'クラスIV']),
+        Ordinal(5, 'Class V', ['V', 'Ⅴ', 'CLASS5', 'CLASSV', 'CLASSⅤ', 'クラス5', 'クラスV']),
+      ],
+      rangeNote: 'Class III 以上は精査（悪性の疑い）',
+      aliases: ['喀痰細胞診', '細胞診', '喀痰細胞診判定']),
 
   // ───────── その他 ─────────
   LabItemDef(
