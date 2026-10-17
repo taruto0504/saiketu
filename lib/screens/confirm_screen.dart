@@ -20,12 +20,18 @@ class ConfirmScreen extends StatefulWidget {
     this.targetFolderId,
     this.fromOcr = false,
     this.skippedPersonalRows = 0,
+    this.pageCount = 1,
+    this.failedPages = const [],
   });
 
   final LabSet set;
   final String? targetFolderId;
   final bool fromOcr;
   final int skippedPersonalRows;
+
+  /// 読み取ったページ数と、読み取れなかったページ（1始まり）。
+  final int pageCount;
+  final List<int> failedPages;
 
   @override
   State<ConfirmScreen> createState() => _ConfirmScreenState();
@@ -127,6 +133,15 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
               ),
             ]),
           ),
+          if (widget.pageCount > 1)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Text(
+                '${widget.pageCount}ページを読み取り、1つにまとめました。'
+                '${widget.failedPages.isEmpty ? '' : '${widget.failedPages.join('・')}ページ目は読み取れませんでした（撮り直すか、手で追加してください）。'}',
+                style: TextStyle(fontSize: 13, color: widget.failedPages.isEmpty ? scheme.onSurfaceVariant : scheme.error),
+              ),
+            ),
           if (widget.skippedPersonalRows > 0)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

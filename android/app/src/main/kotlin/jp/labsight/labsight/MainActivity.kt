@@ -77,7 +77,7 @@ class MainActivity : FlutterFragmentActivity() {
         }
         val options = GmsDocumentScannerOptions.Builder()
             .setGalleryImportAllowed(false)
-            .setPageLimit(1)
+            .setPageLimit(10)
             .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG)
             .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_BASE)
             .build()
@@ -106,15 +106,14 @@ class MainActivity : FlutterFragmentActivity() {
             return
         }
         try {
-            val uri = GmsDocumentScanningResult.fromActivityResultIntent(data)?.pages?.firstOrNull()?.imageUri
-            if (uri == null) {
-                r.success(emptyList<String>())
-                return
+            val pages = GmsDocumentScanningResult.fromActivityResultIntent(data)?.pages.orEmpty()
+            // 全ページを一時ファイルにコピー（読み取り後に Dart 側で削除）
+            val paths = pages.mapIndexedNotNull { i, page ->
+                val out = File(cacheDir, "scan_${System.currentTimeMillis()}_$i.jpg")
+                contentResolver.openInputStream(page.imageUri)?.use { input -> out.outputStream().use { input.copyTo(it) } }
+                if (out.exists()) out.absolutePath else null
             }
-            // 一時ファイルにコピー（読み取り後に Dart 側で削除）
-            val out = File(cacheDir, "scan_${System.currentTimeMillis()}.jpg")
-            contentResolver.openInputStream(uri)?.use { input -> out.outputStream().use { input.copyTo(it) } }
-            r.success(listOf(out.absolutePath))
+            r.success(paths)
         } catch (e: Exception) {
             r.error("scan_failed", e.message, null)
         }

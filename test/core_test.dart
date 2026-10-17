@@ -6,6 +6,7 @@ import 'package:labsight/models/lab_set.dart';
 import 'package:labsight/services/ai_service.dart';
 import 'package:labsight/services/clinical_calc.dart';
 import 'package:labsight/services/lab_catalog.dart';
+import 'package:labsight/screens/capture_flow.dart';
 import 'package:labsight/services/ocr_parser.dart';
 import 'package:labsight/services/pii.dart';
 import 'package:labsight/services/rule_engine.dart';
@@ -130,6 +131,20 @@ void main() {
       expect(m['PLT']!.value, 9.5);
       expect(m['PLT']!.uncertain, isFalse);
       expect(m['RBC']!.uncertain, isFalse);
+    });
+
+    test('複数ページをまとめる・ページ間の食い違いは要確認', () {
+      final r = parsePages(parser, [
+        [OcrLine('採取日時 2026/10/16 08:30', top: 0, bottom: 10), OcrLine('WBC 12500', top: 20, bottom: 30), OcrLine('Hb 9.8', top: 40, bottom: 50)],
+        [OcrLine('Na 131', top: 0, bottom: 10), OcrLine('WBC 11000', top: 20, bottom: 30), OcrLine('K 5.6', top: 40, bottom: 50)],
+      ]);
+      final m = {for (final v in r.values) v.code: v};
+      expect(m.keys, containsAll(['WBC', 'HB', 'NA', 'K']));
+      expect(m['WBC']!.value, 12500);
+      expect(m['WBC']!.uncertain, isTrue);
+      expect(m['WBC']!.warnings.join(), contains('2ページ目にも別の値（11000）'));
+      expect(m['NA']!.uncertain, isFalse);
+      expect(r.takenAt?.hour, 8);
     });
 
     test('単位の表記ゆれ', () {

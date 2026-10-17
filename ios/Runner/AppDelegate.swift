@@ -107,8 +107,9 @@ class LabSightVisionPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControl
 
   func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFinishWith scan: VNDocumentCameraScan) {
     var paths: [String] = []
-    if scan.pageCount > 0 {
-      let img = scan.imageOfPage(at: 0)
+    // 全ページ（最大10ページ）を一時ファイルに書き出す（読み取り後に Dart 側で削除）
+    for i in 0..<min(scan.pageCount, 10) {
+      let img = scan.imageOfPage(at: i)
       let url = FileManager.default.temporaryDirectory.appendingPathComponent("scan_\(UUID().uuidString).jpg")
       if let data = img.jpegData(compressionQuality: 0.9), (try? data.write(to: url, options: .completeFileProtection)) != nil {
         paths.append(url.path)

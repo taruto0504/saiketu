@@ -24,10 +24,10 @@ class OcrService {
     ];
   }
 
-  /// 書類の輪郭を自動検出して撮影する。撮影画像のパスを返す。キャンセル時は null。
+  /// 書類の輪郭を自動検出して撮影する（複数ページ可、最大10ページ）。撮影画像のパスを返す。キャンセル時は空。
   /// 端末が対応していない場合は PlatformException。
-  Future<String?> scanDocument() async {
+  Future<List<String>> scanDocument() async {
     final paths = await _channel.invokeListMethod<String>('scanDocument');
-    return (paths == null || paths.isEmpty) ? null : paths.first;
+    return paths ?? const [];
   }
 }
