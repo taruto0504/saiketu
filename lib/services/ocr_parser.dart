@@ -352,10 +352,10 @@ class _Entry {
 
     if (def != null) {
       // 単位換算
-      if (unit != null && normalizeName(unit!) != normalizeName(def.unit)) {
+      if (unit != null && unitKey(unit!) != unitKey(def.unit)) {
         AltUnit? alt;
         for (final a in def.altUnits) {
-          if (normalizeName(a.unit) == normalizeName(unit!)) alt = a;
+          if (unitKey(a.unit) == unitKey(unit!)) alt = a;
         }
         if (alt != null) {
           if (alt.factor != 1) {
@@ -365,7 +365,7 @@ class _Entry {
             if (hi != null) hi = hi * alt.factor;
           }
           u = def.unit;
-        } else if (!_unitLooksSame(unit!, def.unit)) {
+        } else if (unitKey(unit!) != unitKey(def.unit)) {
           uncertain = true;
           warnings.add('単位「$unit」が標準（${def.unit}）と異なる可能性');
         } else {
@@ -417,11 +417,6 @@ class _Entry {
       uncertain: uncertain,
       warnings: warnings,
     );
-  }
-
-  static bool _unitLooksSame(String a, String b) {
-    String n(String s) => normalizeName(s).replaceAll('Μ', 'U').replaceAll('µ'.toUpperCase(), 'U').replaceAll('⁴', '4').replaceAll('^', '');
-    return n(a) == n(b);
   }
 
   static String _f(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toString();
@@ -492,4 +487,22 @@ OxygenInfo detectOxygen(String text) {
   }
   if (device == '室内気') fio2 ??= 0.21;
   return OxygenInfo(foundTexts: found, device: device, flowLpm: flow, fio2: fio2);
+}
+
+/// 単位の表記ゆれをそろえる（10^3/uL = ×10^3/μL、万/μL = ×10^4/μL、IU/L = U/L、sec = 秒 など）。
+String unitKey(String u) {
+  var t = toHalfWidthAscii(u).trim();
+  t = t
+      .replaceAll('万', '×10^4')
+      .replaceAll(RegExp('[μµ]'), 'MC')
+      .replaceAll(RegExp(r'u(?=[Llg]|mol|IU)'), 'MC')
+      .replaceAll('³', '3')
+      .replaceAll('⁴', '4')
+      .replaceAll('⁶', '6')
+      .replaceAll('²', '2')
+      .replaceAll('^', '')
+      .replaceFirst(RegExp(r'^[×xX*]\s*(?=10)'), '');
+  if (RegExp(r'^I?U\s*/\s*[lL]$').hasMatch(t)) t = 'U/L';
+  if (RegExp(r'^(sec|s|秒)$', caseSensitive: false).hasMatch(t)) t = '秒';
+  return normalizeName(t);
 }

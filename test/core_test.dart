@@ -123,6 +123,28 @@ void main() {
       expect(r.takenAt?.day, now.day);
     });
 
+    test('「万/μL」は ×10^4/μL と同じ単位として扱う', () {
+      final r = parser.parse([OcrLine('PLT 9.5 万/μL'), OcrLine('RBC 380 万/μL')]);
+      final m = {for (final v in r.values) v.code: v};
+      expect(m['PLT']!.value, 9.5);
+      expect(m['PLT']!.uncertain, isFalse);
+      expect(m['RBC']!.uncertain, isFalse);
+    });
+
+    test('単位の表記ゆれ', () {
+      expect(unitKey('10^3/uL'), unitKey('×10^3/μL'));
+      expect(unitKey('×10³/μL'), unitKey('×10^3/μL'));
+      expect(unitKey('万/uL'), unitKey('×10^4/μL'));
+      expect(unitKey('IU/L'), unitKey('U/L'));
+      expect(unitKey('sec'), unitKey('秒'));
+      expect(unitKey('U/L'), isNot(unitKey('/μL')));
+      final r = parser.parse([OcrLine('WBC 6.5 10^3/uL'), OcrLine('AST 25 IU/L'), OcrLine('PT 12.0 sec')]);
+      final m = {for (final v in r.values) v.code: v};
+      expect(m['WBC']!.value, 6500);
+      expect(m['AST']!.uncertain, isFalse);
+      expect(m['PT']!.uncertain, isFalse);
+    });
+
     test('同じ高さの断片を1行にまとめる・単位換算', () {
       final lines = [
         OcrLine('WBC', left: 10, top: 100, right: 60, bottom: 120),

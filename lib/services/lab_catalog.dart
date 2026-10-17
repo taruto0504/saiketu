@@ -19,17 +19,21 @@ enum LabFlag {
   bool get isAbnormal => isHigh || isLow;
 }
 
-/// 文字列を項目名照合用に正規化する（全角→半角、大文字化、記号・空白除去）。
-String normalizeName(String s) {
+/// 全角英数字・記号・空白を半角にする。
+String toHalfWidthAscii(String s) {
   final b = StringBuffer();
   for (final r in s.runes) {
     var c = r;
-    // 全角英数字・記号 → 半角
     if (c >= 0xFF01 && c <= 0xFF5E) c -= 0xFEE0;
     if (c == 0x3000) c = 0x20;
     b.writeCharCode(c);
   }
-  var t = b.toString().toUpperCase();
+  return b.toString();
+}
+
+/// 文字列を項目名照合用に正規化する（全角→半角、大文字化、記号・空白除去）。
+String normalizeName(String s) {
+  var t = toHalfWidthAscii(s).toUpperCase();
   t = t
       .replaceAll('Γ', 'G') // γ-GTP
       .replaceAll('γ'.toUpperCase(), 'G')
