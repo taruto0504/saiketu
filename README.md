@@ -53,7 +53,6 @@ Flutter で作っているので、1つのコードで iOS と Android の両方
 | Android | Android Studio。Android 7.0（API 24）以上 |
 
 ```sh
-cd labsight
 flutter pub get
 flutter test             # 単体テスト＋画面の通しテスト
 flutter run              # 接続した実機・シミュレータで起動
@@ -66,7 +65,7 @@ flutter build ipa        # iOS（Xcode で署名の設定が必要）
 
 ## ビルド済みアプリの入手（GitHub Actions）
 
-`labsight/` を変更してプッシュすると、GitHub Actions が自動でビルドします（`.github/workflows/labsight-build.yml`）。
+変更をプッシュすると、GitHub Actions が自動でビルドします（`.github/workflows/build.yml`）。
 
 1. GitHub のリポジトリで「Actions」→「LabSight build」→ 最新の実行を開く
 2. 下部の「Artifacts」からダウンロード

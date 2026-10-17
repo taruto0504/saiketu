@@ -1,0 +1,121 @@
+name: LabSight build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  android:
+    name: Android (APK)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.7
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LabSight-android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+  ios:
+    name: iOS (署名なしビルド)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.7
+          cache: true
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - name: 署名なし IPA を作成
+        run: |
+          mkdir -p build/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ipa/Payload/
+          cd build/ipa && zip -qr LabSight-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LabSight-ios-unsigned
+          path: build/ipa/LabSight-unsigned.ipa
+          retention-days: 30
+
+  android-smoke:
+    name: Android 起動テスト（エミュレーター）
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: KVM を有効化
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: actions/download-artifact@v4
+        with:
+          name: LabSight-android-apk
+          path: apk
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: |
+            adb install -r apk/app-release.apk
+            adb logcat -c
+            adb shell am start -W -n jp.labsight.labsight/.MainActivity
+            sleep 30
+            adb shell pidof jp.labsight.labsight && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"
+            adb exec-out screencap -p > screen.png
+            echo "===== APP LOG =====" && adb logcat -d -s flutter:V AndroidRuntime:E DEBUG:V | tail -100
+            echo "===== UI TEXT =====" && adb shell uiautomator dump /sdcard/ui.xml >/dev/null && adb shell cat /sdcard/ui.xml | grep -oE '(text|content-desc)="[^"]+"' | head -60 || true
+            echo "===== SCREENSHOT_BASE64_BEGIN =====" && python3 -c "import base64;print(base64.b64encode(open('screen.png','rb').read()).decode())" && echo "===== SCREENSHOT_BASE64_END ====="
+
+  ios-smoke:
+    name: iOS 起動テスト（シミュレーター）
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.7
+          cache: true
+      - run: flutter pub get
+      - run: sudo softwareupdate --install-rosetta --agree-to-license || true
+      - name: シミュレーター用ビルド
+        run: |
+          flutter build ios --simulator --debug --verbose > build.log 2>&1 || { grep -E "error:|Error|ld: |not found" build.log | grep -v "^\[" | tail -60; tail -40 build.log; exit 1; }
+      - name: シミュレーターで起動
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print([x['udid'] for k,v in d.items() if 'iOS' in k for x in v if 'iPhone' in x['name']][-1])")
+          lipo -info build/ios/iphonesimulator/Runner.app/Runner || true
+          echo "UDID=$UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" build/ios/iphonesimulator/Runner.app
+          BUNDLE=$(/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" build/ios/iphonesimulator/Runner.app/Info.plist)
+          echo "BUNDLE=$BUNDLE"
+          (xcrun simctl launch --console-pty "$UDID" "$BUNDLE" > launch.log 2>&1 &)
+          sleep 45
+          xcrun simctl spawn "$UDID" launchctl list | grep -i "$BUNDLE" && echo "APP_RUNNING" || echo "APP_NOT_RUNNING"
+          echo "===== APP LOG =====" && tail -200 launch.log || true
+          xcrun simctl io "$UDID" screenshot screen.png
+          sips -Z 640 -s format jpeg -s formatOptions 50 screen.png --out screen.jpg >/dev/null
+          echo "===== SCREENSHOT_BASE64_BEGIN =====" && base64 -i screen.jpg | tr -d '\n' && echo && echo "===== SCREENSHOT_BASE64_END ====="
