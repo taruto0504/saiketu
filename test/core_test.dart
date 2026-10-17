@@ -193,6 +193,23 @@ void main() {
       expect(top(s(['BUN 52', 'Cr 1.8', 'Na 145', '尿中Na 10', '尿中Cr 150'])), 'prerenal');
     });
 
+    test('「P」をページ番号・脈拍から読まない、OCRの読み違いの補正', () {
+      final r = parser.parse([
+        'P1', 'P.2', '1/3', '- 2 -', 'BP 120/80 P 88 T 36.5', 'K 4.1 P2',
+        '【尿定性】', 'ケト ン 体 ( 土 )', '潜血 (3', '蛋白 (24)',
+      ].map((t) => OcrLine(t)).toList());
+      final m = {for (final v in r.values) v.code: v};
+      expect(m.containsKey('P'), isFalse);
+      expect(m['K']!.value, 4.1);
+      String show(String c) => catalog.byCode(c)!.formatValue(m[c]!.value!);
+      expect(show('U_KET'), '±');
+      expect(show('U_OB'), '3+');
+      expect(m['U_OB']!.uncertain, isTrue);
+      expect(show('U_PRO'), '2+');
+      // 本物のリンは読む
+      expect(parser.parse([OcrLine('P 3.5 mg/dL')]).values.single.code, 'P');
+    });
+
     test('単位の表記ゆれ', () {
       expect(unitKey('10^3/uL'), unitKey('×10^3/μL'));
       expect(unitKey('×10³/μL'), unitKey('×10^3/μL'));

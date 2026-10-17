@@ -108,7 +108,12 @@ class LabSheetParser {
     LabCategory? section;
 
     for (final row in rows) {
-      final text = toHalfWidth(row.text).trim();
+      // 日本語の文字の間に入った空白を詰める（「ケト ン 体」→「ケトン体」）
+      final text = toHalfWidth(row.text)
+          .replaceAllMapped(RegExp(r'([(（])\s+'), (m) => m[1]!)
+          .replaceAllMapped(RegExp(r'\s+([)）])'), (m) => m[1]!)
+          .replaceAllMapped(RegExp(r'([\u3040-\u30FF\u4E00-\u9FFF【】])\s+(?=[\u3040-\u30FF\u4E00-\u9FFF【】])'), (m) => m[1]!)
+          .trim();
       if (text.isEmpty) continue;
       // 採血日時は個人情報ではないので、同じ行に番号などがあっても先に拾う
       if (!RegExp(r'(生年月日|誕生日|生まれ|生$)').hasMatch(text)) takenAt ??= _extractDate(text);
@@ -119,6 +124,8 @@ class LabSheetParser {
         sex ??= _extractSex(text);
         continue;
       }
+      // ページ番号（P1、P.2、1/3、- 2 -）は読まない
+      if (_pageNumber.hasMatch(text)) continue;
       // 尿検査・喀痰検査の欄の見出しを見て、「蛋白」「pH」「Na」などを尿の項目として読む
       if (_urineHeader.hasMatch(text)) {
         section = LabCategory.urine;
@@ -129,7 +136,12 @@ class LabSheetParser {
       }
       age ??= _extractAge(text);
       safeText.writeln(text);
-      for (final v in _parseRow(text, row.confidence, section)) {
+      // 「/HPF」は尿沈渣。見出しが読めなくても尿の項目として読む
+      final rowSection = RegExp(r'/\s*(HPF|HF|LPF)|毎視野', caseSensitive: false).hasMatch(text) ? LabCategory.urine : section;
+      // バイタルサインの行（BP 120/80 P 88 など）の P は脈拍なので、リンとして読まない
+      final vitals = _vitalsRow.hasMatch(text);
+      for (final v in _parseRow(text, row.confidence, rowSection)) {
+        if (v.code == 'P' && (vitals || (v.value ?? 0) >= 20)) continue;
         if (seen.contains(v.code)) continue;
         seen.add(v.code);
         values.add(v);
@@ -155,8 +167,8 @@ class LabSheetParser {
   }
 
   String? _extractSex(String t) {
-    if (RegExp(r'(男性|性別\s*[:：]?\s*男|(^|[\s(（:：/])男($|[\s)）/]))').hasMatch(t)) return 'M';
-    if (RegExp(r'(女性|性別\s*[:：]?\s*女|(^|[\s(（:：/])女($|[\s)）/]))').hasMatch(t)) return 'F';
+    if (RegExp(r'(男性|性別\s*[:：]?\s*男|(^|[\s(（:：/歳才])男($|[\s)）/]))').hasMatch(t)) return 'M';
+    if (RegExp(r'(女性|性別\s*[:：]?\s*女|(^|[\s(（:：/歳才])女($|[\s)）/]))').hasMatch(t)) return 'F';
     return null;
   }
 
@@ -175,6 +187,10 @@ class LabSheetParser {
     }
   }
 
+  static final _pageNumber = RegExp(
+      r'^(?:(?:P|PAGE|ページ|頁)\s*\.?\s*\d+(?:\s*/\s*\d+)?|\d+\s*/\s*\d+\s*(?:P|ページ|頁)?|[-ー―]\s*\d+\s*[-ー―]|\d+\s*(?:ページ|頁))$',
+      caseSensitive: false);
+  static final _vitalsRow = RegExp(r'(BP|血圧|体温|脈拍|SpO2|SPO2|呼吸数|\bHR\b|\bRR\b|\bBT\b|\bKT\b|mmHg)', caseSensitive: false);
   static final _urineHeader =
       RegExp(r'(尿定性|尿沈渣|尿検査|尿一般|尿化学|尿生化学|随時尿|早朝尿|蓄尿|部分尿|尿所見|URINALYSIS|URINE|^[【\[(（]?\s*尿\s*[】\])）]?$)', caseSensitive: false);
   static final _sputumHeader = RegExp(r'(喀痰|SPUTUM|グラム染色|塗抹検査|^[【\[(（]?\s*痰\s*[】\])）]?$)', caseSensitive: false);
@@ -203,7 +219,10 @@ class LabSheetParser {
         continue;
       }
       final m = RegExp(r'^(.*?[^\d.\-+])([-+]?\d+(?:\.\d+)?[HL↑↓*]*)$').firstMatch(t);
-      if (m != null && catalog.codeForAlias(m.group(1)!, section: section) != null) {
+      // 「P1」「P2」のような1文字＋整数はページ番号などのことが多いので分けない
+      if (m != null &&
+          catalog.codeForAlias(m.group(1)!, section: section) != null &&
+          !(m.group(1)!.length == 1 && RegExp(r'^\d+$').hasMatch(m.group(2)!))) {
         out
           ..add(m.group(1)!)
           ..add(m.group(2)!);
@@ -268,6 +287,17 @@ class LabSheetParser {
         e.value = o.value;
         e.raw = t;
         return;
+      }
+      // 「(3+)」の「+」が読めず「(3」「(3)」になったもの（−・±・1+〜の段階の項目だけ）。要確認にする
+      final g = RegExp(r'^[(（]([1-4])[)）]?$').firstMatch(toHalfWidthAscii(t).replaceAll(RegExp(r'\s+'), ''));
+      if (e.value == null && g != null && def.ordinals.any((x) => x.label == '1+')) {
+        final n = double.parse(g.group(1)!);
+        if (def.ordinals.any((x) => x.value == n)) {
+          e.value = n;
+          e.raw = t;
+          e.guessed = true;
+          return;
+        }
       }
       if (e.value != null && o != null) return; // 用紙の基準（(−) など）は読み飛ばす
     }
@@ -366,6 +396,7 @@ class _Entry {
   String? flag;
   String? prefix;
   bool substituted = false;
+  bool guessed = false;
   int extraNumbers = 0;
 
   LabValue build(LabCatalog catalog, double? conf) {
@@ -394,6 +425,10 @@ class _Entry {
     if (extraNumbers > 0) {
       uncertain = true;
       warnings.add('同じ行に数値が多く、列の取り違えの可能性');
+    }
+    if (guessed) {
+      uncertain = true;
+      warnings.add('「+」などの記号が読み取れず、段階を推定しました');
     }
 
     if (def != null) {
@@ -555,7 +590,9 @@ String unitKey(String u) {
 
 String _ordKey(String s) => toHalfWidthAscii(s)
     .toUpperCase()
-    .replaceAll(RegExp('[−ー―‐–—]'), '-')
+    .replaceAll(RegExp('[−ー―‐–—一]'), '-')
+    .replaceAll(RegExp('[土圭士干]'), '±')
+    .replaceAll('十', '+')
     .replaceAll(RegExp('[~～〜]'), '-')
     .replaceAll(RegExp(r'\s+'), '')
     .replaceFirst(RegExp(r'/(HPF|HF|視野|毎視野|WF|LPF)$'), '')
