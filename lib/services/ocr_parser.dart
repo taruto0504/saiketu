@@ -1,6 +1,7 @@
 import '../models/lab_item.dart';
 import '../models/lab_set.dart';
 import 'lab_catalog.dart';
+import 'pii.dart';
 
 /// OCRで認識した1行（座標は画像内のピクセルまたは正規化座標）。
 class OcrLine {
@@ -108,7 +109,9 @@ class LabSheetParser {
     for (final row in rows) {
       final text = toHalfWidth(row.text).trim();
       if (text.isEmpty) continue;
-      if (_personalRow.hasMatch(text)) {
+      // 採血日時は個人情報ではないので、同じ行に番号などがあっても先に拾う
+      if (!RegExp(r'(生年月日|誕生日|生まれ|生$)').hasMatch(text)) takenAt ??= _extractDate(text);
+      if (_personalRow.hasMatch(text) || hasPII(text)) {
         // 個人情報の行は値として使わない（年齢・性別だけ参考に拾う）
         skipped++;
         age ??= _extractAge(text);
@@ -117,7 +120,6 @@ class LabSheetParser {
       }
       age ??= _extractAge(text);
       safeText.writeln(text);
-      takenAt ??= _extractDate(text);
       for (final v in _parseRow(text, row.confidence)) {
         if (seen.contains(v.code)) continue;
         seen.add(v.code);

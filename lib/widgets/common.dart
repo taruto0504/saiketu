@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../services/pii.dart';
 import '../theme.dart';
 
 final dateTimeFmt = DateFormat('yyyy/MM/dd HH:mm');
@@ -114,4 +115,11 @@ void showSnack(BuildContext context, String msg) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(msg)));
+}
+
+/// 入力から個人情報と思われる部分を削除し、削除したら知らせる。
+String cleanPersonalInfo(BuildContext context, String text) {
+  final r = scrubPII(text);
+  if (r.removed > 0) showSnack(context, '氏名・IDなど個人情報と思われる部分（${r.removed}か所）を自動で削除しました');
+  return r.text;
 }

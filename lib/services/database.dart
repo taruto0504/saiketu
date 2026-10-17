@@ -7,6 +7,7 @@ import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../models/lab_item.dart';
 import '../models/lab_set.dart';
+import 'pii.dart';
 import 'rule_engine.dart';
 
 /// 端末内の暗号化データベース（SQLCipher）。
@@ -105,7 +106,18 @@ class AppDatabase {
     }).toList();
   }
 
+  /// 個人情報を削除したフォルダ名（空になったら日時の名前）。
+  static String safeFolderName(String name, DateTime createdAt) {
+    final n = scrubPII(name).text.trim();
+    if (n.isNotEmpty && n != piiMark) return n;
+    String two(int v) => v.toString().padLeft(2, '0');
+    return 'ケース ${createdAt.month}/${createdAt.day} ${two(createdAt.hour)}:${two(createdAt.minute)}';
+  }
+
   Future<void> saveFolder(Folder f) async {
+    // 氏名・IDなどは保存しない
+    f.name = safeFolderName(f.name, f.createdAt);
+    f.memo = scrubPII(f.memo).text;
     f.updatedAt = DateTime.now();
     await _db.insert(
       'folders',
@@ -163,6 +175,8 @@ class AppDatabase {
 
   Future<void> saveLabSet(LabSet s) async {
     if (s.folderId == null) throw StateError('フォルダが未指定です');
+    s.context.scrubPersonalInfo();
+    s.memo = scrubPII(s.memo).text;
     await _db.insert(
       'lab_sets',
       {
@@ -209,9 +223,48 @@ class AppDatabase {
 
   Future<void> saveAiChat(String labSetId, List<Map<String, String>> messages) => _db.insert(
         'ai_chats',
-        {'lab_set_id': labSetId, 'updated_at': DateTime.now().millisecondsSinceEpoch, 'messages_json': jsonEncode(messages)},
+        {'lab_set_id': labSetId, 'updated_at': DateTime.now().millisecondsSinceEpoch, 'messages_json': jsonEncode(_scrubChat(messages))},
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+
+  static List<Map<String, String>> _scrubChat(List<Map<String, String>> messages) => [
+        for (final m in messages)
+          m['role'] == 'user' ? {...m, 'content': scrubPII(m['content'] ?? '').text} : m,
+      ];
+
+  /// 保存済みのデータから個人情報を削除する（以前のバージョンで入力されたものを含む）。
+  /// 1回だけ実行する。削除した箇所の数を返す。
+  Future<int> scrubStoredPersonalInfo() async {
+    if (await getKv('pii_scrub_v1') != null) return 0;
+    var n = 0;
+    for (final f in await folders()) {
+      final name = safeFolderName(f.name, f.createdAt);
+      final memo = scrubPII(f.memo);
+      if (name != f.name || memo.removed > 0) {
+        n += memo.removed + (name != f.name ? 1 : 0);
+        await _db.update('folders', {'name': name, 'memo': memo.text}, where: 'id = ?', whereArgs: [f.id]);
+      }
+    }
+    for (final r in await _db.query('lab_sets', columns: ['id', 'context_json', 'memo'])) {
+      final c = PatientContext.fromJson(jsonDecode(r['context_json'] as String) as Map<String, dynamic>);
+      final memo = scrubPII(r['memo'] as String);
+      final k = c.scrubPersonalInfo() + memo.removed;
+      if (k > 0) {
+        n += k;
+        await _db.update('lab_sets', {'context_json': jsonEncode(c.toJson()), 'memo': memo.text}, where: 'id = ?', whereArgs: [r['id']]);
+      }
+    }
+    for (final r in await _db.query('ai_chats')) {
+      final msgs = (jsonDecode(r['messages_json'] as String) as List).map((e) => (e as Map).cast<String, String>()).toList();
+      final clean = _scrubChat(msgs);
+      if (jsonEncode(clean) != jsonEncode(msgs)) {
+        n++;
+        await _db.update('ai_chats', {'messages_json': jsonEncode(clean)}, where: 'lab_set_id = ?', whereArgs: [r['lab_set_id']]);
+      }
+    }
+    await setKv('pii_scrub_v1', '1');
+    return n;
+  }
 
   // ───────── 自動削除 ─────────
 

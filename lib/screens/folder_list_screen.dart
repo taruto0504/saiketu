@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../models/lab_set.dart';
 import '../services/app_services.dart';
+import '../services/database.dart';
+import '../services/pii.dart';
 import '../widgets/common.dart';
 import 'folder_detail_screen.dart';
 
@@ -118,7 +120,8 @@ Future<String?> showFolderNameDialog(BuildContext context, {required String titl
         autofocus: true,
         decoration: const InputDecoration(
           labelText: 'フォルダ名',
-          helperText: 'ID・イニシャル・メモ名など（氏名は避けてください）',
+          hintText: '例: 3階 12床、ケースA',
+          helperText: '氏名・IDなどは自動で削除します',
         ),
       ),
       actions: [
@@ -133,5 +136,7 @@ Future<String?> showFolderNameDialog(BuildContext context, {required String titl
       ],
     ),
   );
-  return r;
+  if (r == null || !context.mounted) return r;
+  final clean = cleanPersonalInfo(context, r).trim();
+  return clean.isEmpty || clean == piiMark ? AppDatabase.safeFolderName('', DateTime.now()) : clean;
 }

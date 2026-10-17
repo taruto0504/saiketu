@@ -154,7 +154,12 @@ class _ContextInputScreenState extends State<ContextInputScreen> {
       ),
       bottomNavigationBar: BottomActions(children: [
         FilledButton.icon(
-          onPressed: () => Navigator.pop(context, _collect()),
+          onPressed: () {
+            final c = _collect();
+            final n = c.scrubPersonalInfo();
+            if (n > 0) showSnack(context, '氏名・IDなど個人情報と思われる部分（$nか所）を自動で削除しました');
+            Navigator.pop(context, c);
+          },
           icon: const Icon(Icons.refresh),
           label: const Text('この情報で再評価'),
         ),

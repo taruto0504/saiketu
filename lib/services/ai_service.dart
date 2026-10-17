@@ -222,17 +222,3 @@ class AiService {
     }
   }
 }
-
-/// チャットの質問に個人情報らしき記載がないかの簡易チェック。
-String? personalInfoWarning(String text) {
-  if (RegExp(r'(氏名|名前|生年月日|住所|電話|カルテ番号|患者ID|ID\s*[:：]?\s*\d{3,})').hasMatch(text)) {
-    return '氏名・生年月日・ID などの個人情報は入力しないでください。';
-  }
-  if (RegExp(r'(19|20)\d\d\s*[/年.-]\s*\d{1,2}\s*[/月.-]\s*\d{1,2}').hasMatch(text)) {
-    return '日付（生年月日など）が含まれています。個人を特定できる情報は送信しないでください。';
-  }
-  if (RegExp(r'0\d{1,4}-?\d{1,4}-?\d{3,4}').hasMatch(text)) {
-    return '電話番号のような数字が含まれています。個人情報は送信しないでください。';
-  }
-  return null;
-}

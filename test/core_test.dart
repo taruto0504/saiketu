@@ -7,6 +7,7 @@ import 'package:labsight/services/ai_service.dart';
 import 'package:labsight/services/clinical_calc.dart';
 import 'package:labsight/services/lab_catalog.dart';
 import 'package:labsight/services/ocr_parser.dart';
+import 'package:labsight/services/pii.dart';
 import 'package:labsight/services/rule_engine.dart';
 
 LabSet labs(Map<String, double> v, {PatientContext? ctx, OxygenInfo? o2, SpecimenInfo? spec, DateTime? at}) => LabSet(
@@ -276,9 +277,38 @@ void main() {
       expect(s, isNot(contains(set.takenAt.year.toString())));
     });
 
-    test('個人情報らしき入力の警告', () {
-      expect(personalInfoWarning('生年月日は？'), isNotNull);
-      expect(personalInfoWarning('カリウムの補正は？'), isNull);
+    test('個人情報の自動削除', () {
+      String c(String s) => scrubPII(s).text;
+      expect(c('氏名: 山田 太郎 72歳 男'), '［削除］72歳 男');
+      expect(c('高橋様（ID 1234567）のK 5.9 はどう考える？'), '［削除］（［削除］）のK 5.9 はどう考える？');
+      expect(c('生年月日：1950年4月5日 72歳'), '［削除］72歳');
+      expect(c('TEL 03-1234-5678 連絡'), '［削除］連絡');
+      expect(c('〒123-4567 東京都新宿区西新宿2-8-1'), '［削除］');
+      expect(c('佐藤さんの娘さんより'), '［削除］の娘さんより');
+      expect(c('カルテ番号：A-12345'), '［削除］');
+      expect(c('1950/4/5生まれ'), '［削除］');
+      // 消してはいけないもの
+      for (final s in ['患者さんは昨日から嘔吐', 'この薬の名前は？', 'IDH1変異', '電話で家族に連絡済み', '既往歴：糖尿病、高血圧', 'PLT 235000 フェリチン 120000', 'カリウムの補正は？', '救急隊さんより']) {
+        expect(c(s), s);
+      }
+      // 自由記載は保存前に削除される
+      final ctx = PatientContext(complaint: '鈴木花子さん、昨夜から嘔吐', history: '糖尿病');
+      expect(ctx.scrubPersonalInfo(), 1);
+      expect(ctx.complaint, '［削除］、昨夜から嘔吐');
+      expect(ctx.history, '糖尿病');
+    });
+
+    test('個人情報を含む行は読み取らない（採血日時は残す）', () {
+      final r = LabSheetParser(catalog).parse([
+        OcrLine('採取日時 2026/10/16 08:30 受付番号 12345678'),
+        OcrLine('山田 太郎 様 72歳 男'),
+        OcrLine('TEL 03-1234-5678'),
+        OcrLine('K 5.6'),
+      ]);
+      expect(r.values.map((v) => v.code), ['K']);
+      expect(r.takenAt?.hour, 8);
+      expect(r.age, 72);
+      expect(r.skippedPersonalRows, 3);
     });
   });
 }

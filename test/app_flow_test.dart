@@ -336,4 +336,26 @@ void main() {
     expect(p.keys, containsAll(['installId', 'months']));
     expect(p.toString(), isNot(contains('Na')));
   });
+
+  test('個人情報は保存しない（フォルダ名・自由記載・AIの質問、保存済みデータ）', () async {
+    final db = services.db;
+    final f = Folder(name: '山田太郎様');
+    f.memo = 'ID 00123456 連絡先 090-1234-5678';
+    await db.saveFolder(f);
+    final saved = (await db.folders()).firstWhere((x) => x.id == f.id);
+    expect(saved.name, startsWith('ケース '));
+    expect(saved.memo, isNot(contains('00123456')));
+    expect(saved.memo, isNot(contains('090')));
+
+    final set = LabSet(folderId: f.id, values: [LabValue(code: 'K', value: 5.9)], context: PatientContext(complaint: '鈴木花子さん、昨夜から嘔吐'));
+    await db.saveLabSet(set);
+    final back = (await db.labSets(f.id)).first;
+    expect(back.context.complaint, '［削除］、昨夜から嘔吐');
+
+    await db.saveAiChat(set.id, [
+      {'role': 'user', 'content': '佐藤様のKについて'},
+      {'role': 'assistant', 'content': 'はい'},
+    ]);
+    expect((await db.aiChat(set.id)).first['content'], '［削除］のKについて');
+  });
 }

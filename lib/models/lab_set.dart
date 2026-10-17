@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math';
 
+import '../services/pii.dart';
+
 /// 1つの測定値。
 class LabValue {
   LabValue({
@@ -189,6 +191,23 @@ class PatientContext {
   String otherTests;
 
   bool get isEmpty => describe().isEmpty;
+
+  /// 自由記載から個人情報と思われる部分を削除する。削除した箇所の数を返す。
+  int scrubPersonalInfo() {
+    var n = 0;
+    String f(String s) {
+      final r = scrubPII(s);
+      n += r.removed;
+      return r.text;
+    }
+
+    complaint = f(complaint);
+    history = f(history);
+    medications = f(medications);
+    course = f(course);
+    otherTests = f(otherTests);
+    return n;
+  }
 
   PatientContext copy() => PatientContext.fromJson(toJson());
 

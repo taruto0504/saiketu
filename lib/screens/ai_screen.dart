@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/lab_set.dart';
 import '../services/ai_service.dart';
 import '../services/app_services.dart';
+import '../services/pii.dart';
 import '../services/settings.dart';
 import '../widgets/common.dart';
 import 'settings_screen.dart';
@@ -139,10 +140,12 @@ class _AiScreenState extends State<AiScreen> {
   Future<void> _ask() async {
     final q = _input.text.trim();
     if (q.isEmpty) return;
-    final warn = personalInfoWarning(q);
-    if (warn != null) {
-      final go = await confirmDialog(context, title: '個人情報の確認', message: '$warn\nこのまま送信しますか？', ok: '送信する', destructive: false);
-      if (!go) return;
+    final r = scrubPII(q);
+    if (r.removed > 0) {
+      // 削除した内容を見せてから送る（勝手に送らない）
+      _input.text = r.text;
+      showSnack(context, '氏名・IDなど個人情報と思われる部分（${r.removed}か所）を自動で削除しました。内容を確認して、もう一度送信してください。');
+      return;
     }
     _input.clear();
     await _send([
@@ -260,7 +263,7 @@ class _AiScreenState extends State<AiScreen> {
                         minLines: 1,
                         maxLines: 4,
                         decoration: InputDecoration(
-                          hintText: canUse ? '追加で質問する（個人情報は入力しない）' : 'オフライン・未設定のため使用できません',
+                          hintText: canUse ? '追加で質問する（氏名・IDは自動で削除）' : 'オフライン・未設定のため使用できません',
                         ),
                       ),
                     ),

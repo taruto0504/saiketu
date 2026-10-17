@@ -31,6 +31,7 @@ Future<void> main() async {
     final settings = AppSettings(prefs, secure);
     final services = AppServices(db: db, catalog: catalog, settings: settings, rules: rules, builtinRules: builtin);
     await services.runAutoDelete();
+    await db.scrubStoredPersonalInfo();
     runApp(MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: services),

@@ -115,15 +115,15 @@ class _FolderPickerState extends State<_FolderPicker> {
                     controller: _name,
                     decoration: const InputDecoration(
                       labelText: '新しいフォルダ名',
-                      hintText: 'ID・イニシャル・メモ名など（氏名は避けてください）',
+                      hintText: '例: 3階 12床（氏名・IDは自動で削除）',
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () async {
-                    final n = _name.text.trim();
-                    if (n.isEmpty) return;
+                    if (_name.text.trim().isEmpty) return;
+                    final n = cleanPersonalInfo(context, _name.text.trim());
                     final f = Folder(name: n);
                     await services.db.saveFolder(f);
                     services.dataChanged();

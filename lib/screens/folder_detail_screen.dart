@@ -53,15 +53,15 @@ class FolderDetailScreen extends StatelessWidget {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           title: const Text('メモ'),
-                          content: TextField(controller: c, maxLines: 4, decoration: const InputDecoration(hintText: '個人情報は入力しないでください')),
+                          content: TextField(controller: c, maxLines: 4, decoration: const InputDecoration(hintText: '氏名・IDなどは自動で削除します')),
                           actions: [
                             TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('キャンセル')),
                             FilledButton(onPressed: () => Navigator.pop(ctx, c.text.trim()), child: const Text('保存')),
                           ],
                         ),
                       );
-                      if (m != null) {
-                        folder.memo = m;
+                      if (m != null && context.mounted) {
+                        folder.memo = cleanPersonalInfo(context, m);
                         await services.db.saveFolder(folder);
                         services.dataChanged();
                       }
