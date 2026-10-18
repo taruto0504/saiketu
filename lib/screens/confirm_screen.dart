@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../models/lab_item.dart';
 import '../models/lab_set.dart';
-import '../services/app_services.dart';
 import '../services/clinical_calc.dart';
 import '../services/lab_catalog.dart';
 import '../theme.dart';
@@ -39,7 +38,6 @@ class ConfirmScreen extends StatefulWidget {
 
 class _ConfirmScreenState extends State<ConfirmScreen> {
   LabSet get set => widget.set;
-  bool _saving = false;
 
   int get _uncertainCount => set.values.where((v) => v.uncertain).length;
 
@@ -61,7 +59,8 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
     setState(() => set.values.add(LabValue(code: it.code, unit: it.unit)));
   }
 
-  Future<void> _finish({required bool save}) async {
+  // まず結果を見せて、保存するかどうかは結果の画面で決める
+  Future<void> _finish() async {
     final missing = set.values.where((v) => v.value == null).toList();
     if (missing.isNotEmpty) {
       set.values.removeWhere((v) => v.value == null);
@@ -78,27 +77,8 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
           destructive: false);
       if (!ok || !mounted) return;
     }
-    final services = context.read<AppServices>();
-    if (save) {
-      String? folderId = widget.targetFolderId;
-      if (folderId == null) {
-        final f = await showFolderPicker(context);
-        if (f == null || !mounted) return;
-        folderId = f.id;
-      }
-      setState(() => _saving = true);
-      set.folderId = folderId;
-      for (final v in set.values) {
-        v.uncertain = false;
-        v.warnings.clear();
-        v.rawText = null;
-      }
-      await services.db.saveLabSet(set);
-      services.dataChanged();
-      services.settings.stats.track('set_saved');
-    }
     if (!mounted) return;
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ResultScreen(set: set)));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => ResultScreen(set: set, saveTo: widget.targetFolderId)));
   }
 
   @override
@@ -207,11 +187,7 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
         ],
       ),
       bottomNavigationBar: BottomActions(children: [
-        OutlinedButton(onPressed: _saving ? null : () => _finish(save: false), child: const Text('保存せず結果へ')),
-        FilledButton(
-          onPressed: _saving ? null : () => _finish(save: true),
-          child: Text(widget.targetFolderId != null ? '保存して結果へ' : '保存して結果へ'),
-        ),
+        FilledButton(onPressed: _finish, child: const Text('結果を見る')),
       ]),
     );
   }

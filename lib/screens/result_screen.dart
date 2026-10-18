@@ -17,8 +17,11 @@ import 'diagnosis_screen.dart';
 
 /// 結果画面（上部に危険値・A/V推定・酸素投与、下に全項目）。
 class ResultScreen extends StatefulWidget {
-  const ResultScreen({super.key, required this.set});
+  const ResultScreen({super.key, required this.set, this.saveTo});
   final LabSet set;
+
+  /// 読み取りを始めたフォルダ（保存先の候補）。
+  final String? saveTo;
 
   @override
   State<ResultScreen> createState() => _ResultScreenState();
@@ -37,6 +40,12 @@ class _ResultScreenState extends State<ResultScreen> {
     super.initState();
     context.read<AppSettings>().stats.track('result_view');
     _loadPrevious();
+    if (widget.saveTo != null) {
+      context.read<AppServices>().db.folders().then((all) {
+        final f = all.where((x) => x.id == widget.saveTo).firstOrNull;
+        if (f != null && mounted) setState(() => _saveToName = f.name);
+      });
+    }
   }
 
   @override
@@ -70,11 +79,24 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-  Future<void> _save() async {
-    final f = await showFolderPicker(context);
-    if (f == null || !mounted) return;
+  String? _saveToName;
+
+  Future<void> _save({bool pick = true}) async {
     final services = context.read<AppServices>();
+    Folder? f;
+    if (!pick && widget.saveTo != null) {
+      f = (await services.db.folders()).where((x) => x.id == widget.saveTo).firstOrNull;
+    }
+    if (!mounted) return;
+    f ??= await showFolderPicker(context);
+    if (f == null || !mounted) return;
     set.folderId = f.id;
+    for (final v in set.values) {
+      v.uncertain = false;
+      v.warnings.clear();
+      v.rawText = null;
+    }
+    services.settings.stats.track('set_saved');
     await services.db.saveLabSet(set);
     services.dataChanged();
     if (!mounted) return;
@@ -104,7 +126,17 @@ class _ResultScreenState extends State<ResultScreen> {
       abnormalOnly: _abnormalOnly,
       onChanged: _persist,
     );
-    return Scaffold(
+    final scheme = Theme.of(context).colorScheme;
+    // 保存していない結果から戻るときは確認する
+    return PopScope(
+      canPop: set.isSaved,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final ok = await confirmDialog(context,
+            title: '保存せずに戻りますか？', message: 'この結果は保存していないため、戻ると消えます。', ok: '保存せずに戻る');
+        if (ok && context.mounted) Navigator.pop(context);
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('結果'),
@@ -117,6 +149,31 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
       body: Column(
         children: [
+          if (!set.isSaved)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer.withValues(alpha: 0.5),
+                border: Border.all(color: scheme.primary),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text.rich(TextSpan(children: [
+                  TextSpan(text: 'この結果はまだ保存していません。', style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: '内容を確認してから、保存するか決めてください（保存しないで戻ると消えます）。'),
+                ])),
+                const SizedBox(height: 8),
+                Wrap(spacing: 8, runSpacing: 8, children: [
+                  if (_saveToName != null) ...[
+                    FilledButton(onPressed: () => _save(pick: false), child: Text('「$_saveToName」に保存')),
+                    OutlinedButton(onPressed: _save, child: const Text('別のフォルダ')),
+                  ] else
+                    FilledButton(onPressed: _save, child: const Text('保存する')),
+                ]),
+              ]),
+            ),
           Material(
             color: Theme.of(context).colorScheme.surface,
             child: SwitchListTile(
@@ -178,6 +235,7 @@ class _ResultScreenState extends State<ResultScreen> {
         if (set.isSaved && _folderCount >= 2)
           OutlinedButton.icon(onPressed: _openCompare, icon: const Icon(Icons.compare_arrows), label: const Text('比較')),
       ]),
+      ),
     );
   }
 }

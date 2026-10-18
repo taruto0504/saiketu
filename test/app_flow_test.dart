@@ -214,7 +214,7 @@ void main() {
     expect(find.text('急性腎障害（AKI）'), findsOneWidget);
   });
 
-  testWidgets('手入力 → 確認（誤読警告）→ 保存して結果', (t) async {
+  testWidgets('手入力 → 確認（誤読警告）→ 結果 → 保存', (t) async {
     phone(t);
     await services.settings.setAgreed(true);
     await services.settings.setProfile(role: 'nurse', years: '3-5');
@@ -233,11 +233,17 @@ void main() {
     expect(find.text('入力内容の確認'), findsOneWidget);
     expect(find.textContaining('小数点ずれ'), findsOneWidget);
 
-    await t.tap(find.text('保存して結果へ'));
+    await t.tap(find.text('結果を見る'));
     await settle(t);
     // 黄色の項目があるので確認ダイアログ
     expect(find.text('未確認の項目があります'), findsOneWidget);
     await t.tap(find.text('このまま進む'));
+    await settle(t);
+    // 先に結果を表示し、保存は結果の画面で決める
+    expect(find.text('結果'), findsOneWidget);
+    expect(find.textContaining('この結果はまだ保存していません', findRichText: true), findsOneWidget);
+    expect(await services.db.folders().then((f) => f.map((x) => x.name)), isNot(contains('ケースB')));
+    await t.tap(find.widgetWithText(FilledButton, '保存する'));
     await settle(t);
     await t.enterText(find.widgetWithText(TextField, '新しいフォルダ名'), 'ケースB');
     await t.tap(find.text('作成'));
