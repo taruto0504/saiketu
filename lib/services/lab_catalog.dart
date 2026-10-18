@@ -61,6 +61,8 @@ class LabCatalog extends ChangeNotifier {
   late Map<String, LabItemDef> _byCode;
   late Map<String, String> _aliasIndex;
   late Map<LabCategory, Map<String, String>> _sectionIndex;
+  late Map<String, String> _ocrIndex;
+  late Map<String, String> _ocrExact;
 
   List<LabItemDef> get all => _all;
   List<LabItemDef> get customItems => List.unmodifiable(_custom);
@@ -96,6 +98,29 @@ class LabCatalog extends ChangeNotifier {
         _aliasIndex.putIfAbsent(k, () => item.code);
       }
     }
+    // 読み取りの紛らわしい文字を同じとみなした名前（2つ以上の項目にあたるものは使わない）
+    _ocrExact = {
+      for (final e in ocrAliases)
+        if (_byCode.containsKey(e.value) && !_aliasIndex.containsKey(normalizeName(e.key))) normalizeName(e.key): e.value,
+    };
+    _ocrIndex = {};
+    final amb = <String>{};
+    void addOcr(String a, String code) {
+      final k = ocrKey(normalizeName(a));
+      if (k.length < 2) return;
+      final prev = _ocrIndex[k];
+      if (prev != null && prev != code) {
+        amb.add(k);
+      } else {
+        _ocrIndex[k] = code;
+      }
+    }
+
+    _aliasIndex.forEach(addOcr);
+    for (final e in ocrAliases) {
+      if (_byCode.containsKey(e.value)) addOcr(e.key, e.value);
+    }
+    amb.forEach(_ocrIndex.remove);
   }
 
   LabItemDef? byCode(String code) => _byCode[code];
@@ -104,7 +129,11 @@ class LabCatalog extends ChangeNotifier {
   /// [section] が尿検査・喀痰検査のときは、その欄だけの別名（「蛋白」「pH」「Na」など）を先に見る。
   String? codeForAlias(String text, {LabCategory? section}) {
     final k = normalizeName(text);
-    return (section == null ? null : _sectionIndex[section]?[k]) ?? _aliasIndex[k];
+    final c = (section == null ? null : _sectionIndex[section]?[k]) ?? _aliasIndex[k] ?? _ocrExact[k];
+    if (c != null) return c;
+    // 読み取りの紛らわしい文字（0とO、1とl、bとD など）を同じとみなして、もう一度探す
+    if (k.length < 2 || RegExp(r'^[\d.,]+$').hasMatch(k) || (k.length < 3 && !RegExp(r'\d').hasMatch(k))) return null;
+    return _ocrIndex[ocrKey(k)];
   }
 
   /// 別名辞書のキー（OCRの照合用）。
@@ -225,3 +254,21 @@ class PlausibilityIssue {
   final String message;
   final double? suggestion;
 }
+
+/// 写真の読み取りで取り違えやすい文字をまとめる（項目名の照合用）。
+String ocrKey(String k) => k
+    .replaceAll(RegExp('[0QD]'), 'O')
+    .replaceAll(RegExp(r'[1L|!Iİ]'), 'I')
+    .replaceAll(RegExp(r'[5$]'), 'S')
+    .replaceAll('8', 'B')
+    .replaceAll('6', 'G')
+    .replaceAll('Z', '2');
+
+/// 血液ガスの印字などで、よくある読み違い。
+const ocrAliases = <MapEntry<String, String>>[
+  MapEntry('HET', 'HT'), MapEntry('HETHB', 'METHB'), MapEntry('NETHB', 'METHB'), MapEntry('CATT', 'ICA'),
+  MapEntry('CA+T', 'ICA'), MapEntry('CAT+', 'ICA'), MapEntry('ANBAR', 'AG'), MapEntry('ANGAR', 'AG'),
+  MapEntry('ANBAP', 'AG'), MapEntry('ANGAF', 'AG'), MapEntry('O2H', 'O2HB'), MapEntry('SSO2', 'SO2'),
+  MapEntry('HC03ACT', 'HCO3'), MapEntry('FH', 'PH'), MapEntry('HHD', 'HHB'), MapEntry('O2HD', 'O2HB'),
+  MapEntry('SU2', 'SO2'), MapEntry('TO2', 'TCO2'), MapEntry('卜体', 'U_KET'), MapEntry('体', 'U_KET'), MapEntry('トン体', 'U_KET'),
+];

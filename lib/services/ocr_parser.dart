@@ -101,6 +101,7 @@ class LabSheetParser {
     final values = <LabValue>[];
     final seen = <String>{};
     final safeText = StringBuffer();
+    final nameless = <({String text, LabCategory? section})>[];
     var skipped = 0;
     int? age;
     String? sex;
@@ -140,11 +141,28 @@ class LabSheetParser {
       final rowSection = RegExp(r'/\s*(HPF|HF|LPF)|毎視野', caseSensitive: false).hasMatch(text) ? LabCategory.urine : section;
       // バイタルサインの行（BP 120/80 P 88 など）の P は脈拍なので、リンとして読まない
       final vitals = _vitalsRow.hasMatch(text);
-      for (final v in _parseRow(text, row.confidence, rowSection)) {
+      final parsedRow = _parseRow(text, row.confidence, rowSection);
+      if (parsedRow.isEmpty) nameless.add((text: text, section: rowSection));
+      for (final v in parsedRow) {
         if (v.code == 'P' && (vitals || (v.value ?? 0) >= 20)) continue;
         if (seen.contains(v.code)) continue;
         seen.add(v.code);
         values.add(v);
+      }
+    }
+    // 血液ガスで pH の項目名だけが読めなかったとき：「7.465」のような値の形から pH と推定する
+    if (!seen.contains('PH') && (seen.contains('PCO2') || seen.contains('PO2'))) {
+      final ph = RegExp(r'(?:^|\s)([67]\.\d{2,3})$');
+      for (final x in nameless) {
+        final m = ph.firstMatch(x.text);
+        if (x.section != null || m == null || x.text.split(RegExp(r'\s+')).length > 2) continue;
+        final v = _parseRow('pH ${m.group(1)}', null, null).firstOrNull;
+        if (v == null || v.code != 'PH' || v.value! < 6.8 || v.value! > 7.8) continue;
+        v.uncertain = true;
+        v.warnings.add('項目名が読めなかったため、値の形から pH と推定しました。原本と照合してください');
+        seen.add('PH');
+        values.insert(0, v);
+        break;
       }
     }
     final all = safeText.toString();
@@ -234,7 +252,9 @@ class LabSheetParser {
       // 「P1」「P2」のような1文字＋整数はページ番号などのことが多いので分けない
       if (m != null &&
           catalog.codeForAlias(m.group(1)!, section: section) != null &&
-          !(m.group(1)!.length == 1 && RegExp(r'^\d+$').hasMatch(m.group(2)!))) {
+          !(m.group(1)!.length == 1 && RegExp(r'^\d+$').hasMatch(m.group(2)!)) &&
+          // 「tC02」「PC02」の「02」は「O2」の読み違いなので、「TC」＋「2」のように分けない
+          !RegExp(r'^0\d$').hasMatch(m.group(2)!)) {
         out
           ..add(m.group(1)!)
           ..add(m.group(2)!);
@@ -269,8 +289,8 @@ class LabSheetParser {
         final joined = tokens.sublist(i, i + k).join('');
         final c = catalog.codeForAlias(joined, section: section);
         if (c != null) {
-          // 数値単独のトークンを項目名とみなさない
-          if (_num.hasMatch(joined)) continue;
+          // 数値単独のトークンを項目名とみなさない（「SO2」のように英字で始まるものは項目名）
+          if (_num.hasMatch(joined) && RegExp(r'^[<>≦≧≤≥]?[-+]?\d').hasMatch(joined)) continue;
           code = c;
           used = k;
           break;
@@ -442,6 +462,12 @@ class _Entry {
       uncertain = true;
       warnings.add('「+」などの記号が読み取れず、段階を推定しました');
     }
+    // 「95.0%」の「%」が数字に読まれて「95.02」になることがある（% の項目で、単位が読めず、桁が1つ多い）
+    if (def != null && def.unit == '%' && unit == null && raw != null && RegExp(r'^\d+\.\d{2}$').hasMatch(raw!) && def.decimals <= 1) {
+      v = double.parse(raw!.substring(0, raw!.length - 1));
+      uncertain = true;
+      warnings.add('「$raw」は「${_f(v)}%」の読み違いの可能性');
+    }
 
     if (def != null) {
       // 単位換算
@@ -458,7 +484,7 @@ class _Entry {
             if (hi != null) hi = hi * alt.factor;
           }
           u = def.unit;
-        } else if (unitKey(unit!) != unitKey(def.unit)) {
+        } else if (!unitLooksSame(unit!, def.unit)) {
           uncertain = true;
           warnings.add('単位「$unit」が標準（${def.unit}）と異なる可能性');
         } else {
@@ -580,6 +606,27 @@ OxygenInfo detectOxygen(String text) {
   }
   if (device == '室内気') fio2 ??= 0.21;
   return OxygenInfo(foundTexts: found, device: device, flowLpm: flow, fio2: fio2);
+}
+
+/// 写真の読み取りで崩れた単位（mmo1/L、9/dL、mmol/ など）も同じ単位とみなす。
+bool unitLooksSame(String a, String b) {
+  if (unitKey(a) == unitKey(b)) return true;
+  String o(String u) => unitKey(u)
+      .toLowerCase()
+      .replaceAll('mc', 'u')
+      .replaceAll(RegExp(r'[1i|!]'), 'l')
+      .replaceAll('0', 'o')
+      .replaceFirst(RegExp(r'^[9s$]'), 'g')
+      .replaceAll(RegExp(r'n(?=[mh])|(?<=m)n'), 'm');
+  final x = o(a), y = o(b);
+  if (x == y || (x.length >= 3 && y.startsWith(x))) return true;
+  // 長い単位（mmol/L など）で1文字だけ違う
+  if (x.length < 5 || x.length != y.length) return false;
+  var diff = 0;
+  for (var i = 0; i < x.length; i++) {
+    if (x[i] != y[i]) diff++;
+  }
+  return diff == 1;
 }
 
 /// 単位の表記ゆれをそろえる（10^3/uL = ×10^3/μL、万/μL = ×10^4/μL、IU/L = U/L、sec = 秒 など）。

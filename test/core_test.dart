@@ -229,6 +229,31 @@ void main() {
       expect(m['LAC']!.value, closeTo(0.81, 0.01)); // 7.3 mg/dL → mmol/L
     });
 
+    test('ドット印字の読み違い（PC02・Het・Catt・mmo1/L・項目名の抜けた pH）', () {
+      final r = parser.parse([
+        'BL0ODGAS 37.0C', '州 7.465', 'PC02 34.0 mnHS', 'P02 76.1', 'Het 38 %', 'tHb 12.9 s/dl.', '02HD 94.5 %',
+        'HetHb 0.1 %', 'HHD 5.0', 'Na+ 134.9 mmo1/L', 'C1- 102 m01/', 'AnBar 13.5 MO17L', 'Catt 1.18 mm01/L',
+        'tC02 25.0 mmo1/L', 'S02 95.02',
+      ].map((t) => OcrLine(t)).toList());
+      final m = {for (final v in r.values) v.code: v};
+      expect(m['PH']!.value, 7.465);
+      expect(m['PH']!.uncertain, isTrue);
+      expect(m['PCO2']!.value, 34.0);
+      expect(m['PO2']!.value, 76.1);
+      expect(m['HT']!.value, 38);
+      expect(m['HB']!.uncertain, isFalse); // s/dl. = g/dL
+      expect(m['O2HB']!.value, 94.5);
+      expect(m['METHB']!.value, 0.1);
+      expect(m['HHB']!.value, 5.0);
+      expect(m['NA']!.uncertain, isFalse); // mmo1/L = mmol/L
+      expect(m['CL']!.value, 102);
+      expect(m['ICA']!.value, 1.18);
+      expect(m['TCO2']!.value, 25.0);
+      expect(m.containsKey('TC'), isFalse); // 「tC02」を総コレステロール 2 と読まない
+      expect(m['SO2']!.value, 95.0);
+      expect(m['SO2']!.uncertain, isTrue);
+    });
+
     test('単位の表記ゆれ', () {
       expect(unitKey('10^3/uL'), unitKey('×10^3/μL'));
       expect(unitKey('×10³/μL'), unitKey('×10^3/μL'));
