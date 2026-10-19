@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/lab_set.dart';
 import '../services/ai_service.dart';
@@ -138,6 +139,43 @@ class _AiScreenState extends State<AiScreen> {
     ]);
   }
 
+  /// ふだん使っているAI（ChatGPT・Gemini など）で聞く：送る内容をコピーして、そのAIを開く（各社の有料プランもそのまま使える）。
+  Future<void> _askExternal(String name, String? url) async {
+    final summary = _buildSummary();
+    final text = '${AiService.systemPrompt}\n\n$summary\n\n${AiService.initialRequest}';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(url == null ? '送る内容をコピー' : '$nameで聞く'),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(url == null
+                  ? '以下の内容をコピーします。お使いのAIに貼り付けて送信してください。氏名・ID・フォルダ名・日付・自由記載は含みません。'
+                  : '以下の内容をコピーします。$nameが開いたら、入力欄を長押しして「ペースト」し、送信してください。氏名・ID・フォルダ名・日付・自由記載は含みません。'),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                color: Theme.of(ctx).colorScheme.surfaceContainerHighest,
+                child: Text(summary, style: const TextStyle(fontSize: 11.5, fontFamily: 'monospace')),
+              ),
+            ]),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('キャンセル')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(url == null ? 'コピーする' : 'コピーして$nameを開く')),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    showSnack(context, 'コピーしました。開いたAIの入力欄に貼り付けて送信してください');
+    if (url != null) await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  }
+
   Future<void> _ask() async {
     final q = _input.text.trim();
     if (q.isEmpty) return;
@@ -224,6 +262,22 @@ class _AiScreenState extends State<AiScreen> {
                           label: const Text('AIアドバイスを生成'),
                         ),
                       ),
+                      const SizedBox(height: 20),
+                      const Text('ふだん使っているAIで聞く', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                      const SizedBox(height: 4),
+                      Text('ChatGPT・Gemini などを契約していれば、そのAIで評価できます。送る内容（検査値と年齢・性別のみ）をコピーしてそのAIを開くので、貼り付けて送信してください。APIキーは不要です。',
+                          style: TextStyle(color: scheme.onSurfaceVariant)),
+                      const SizedBox(height: 8),
+                      Wrap(spacing: 8, runSpacing: 8, children: [
+                        for (final (name, url) in const [
+                          ('ChatGPT', 'https://chatgpt.com/'),
+                          ('Gemini', 'https://gemini.google.com/app'),
+                          ('Claude', 'https://claude.ai/new'),
+                          ('Copilot', 'https://copilot.microsoft.com/'),
+                          ('その他（コピーのみ）', null),
+                        ])
+                          OutlinedButton(onPressed: () => _askExternal(name, url), child: Text(name)),
+                      ]),
                     ]),
                   ),
                 for (final (i, m) in _messages.indexed)
