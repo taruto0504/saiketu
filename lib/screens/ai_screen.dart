@@ -199,6 +199,7 @@ class _AiScreenState extends State<AiScreen> {
     final scheme = Theme.of(context).colorScheme;
     final canUse = _online && _hasKey && !_busy;
     final started = _messages.isNotEmpty;
+    final fav = externalAis.where((a) => a.id == settings.preferredAi).firstOrNull;
     return Scaffold(
       appBar: AppBar(
         title: const Text('AIアドバイス'),
@@ -244,6 +245,29 @@ class _AiScreenState extends State<AiScreen> {
               controller: _scroll,
               padding: const EdgeInsets.only(bottom: 12),
               children: [
+                if (!started && fav != null)
+                  Card(
+                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('${fav.name}で聞く', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                        Text('（設定で選んだ「いつも使うAI」）', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () => _askExternal(fav.name, fav.url),
+                            icon: const Icon(Icons.open_in_new),
+                            label: Text('${fav.name}で評価する'),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text('送る内容（検査値と年齢・性別のみ）をコピーして ${fav.name} を開きます。入力欄に貼り付けて送信してください。',
+                            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                      ]),
+                    ),
+                  ),
                 if (!started)
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -269,14 +293,12 @@ class _AiScreenState extends State<AiScreen> {
                           style: TextStyle(color: scheme.onSurfaceVariant)),
                       const SizedBox(height: 8),
                       Wrap(spacing: 8, runSpacing: 8, children: [
-                        for (final (name, url) in const [
-                          ('ChatGPT', 'https://chatgpt.com/'),
-                          ('Gemini', 'https://gemini.google.com/app'),
-                          ('Claude', 'https://claude.ai/new'),
-                          ('Copilot', 'https://copilot.microsoft.com/'),
-                          ('その他（コピーのみ）', null),
-                        ])
-                          OutlinedButton(onPressed: () => _askExternal(name, url), child: Text(name)),
+                        for (final a in externalAis)
+                          if (a.id == settings.preferredAi)
+                            FilledButton.tonal(onPressed: () => _askExternal(a.name, a.url), child: Text('${a.name}（いつもの）'))
+                          else
+                            OutlinedButton(onPressed: () => _askExternal(a.name, a.url), child: Text(a.name)),
+                        OutlinedButton(onPressed: () => _askExternal('その他', null), child: const Text('その他（コピーのみ）')),
                       ]),
                     ]),
                   ),
@@ -409,3 +431,11 @@ class _Bubble extends StatelessWidget {
       .replaceAll('**', '')
       .replaceAllMapped(RegExp(r'^(\s*)[-*]\s+', multiLine: true), (m) => '${m[1]}・');
 }
+
+/// ふだん使っているAI（コピーしてそのAIのアプリを開く）。
+const externalAis = [
+  (id: 'chatgpt', name: 'ChatGPT', url: 'https://chatgpt.com/'),
+  (id: 'gemini', name: 'Gemini', url: 'https://gemini.google.com/app'),
+  (id: 'claude', name: 'Claude', url: 'https://claude.ai/new'),
+  (id: 'copilot', name: 'Copilot', url: 'https://copilot.microsoft.com/'),
+];

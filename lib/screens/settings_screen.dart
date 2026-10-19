@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'ai_screen.dart' show externalAis;
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
@@ -181,6 +182,20 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           const SectionHeader('AIアドバイス', icon: Icons.auto_awesome_outlined),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('いつも使うAI', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Wrap(spacing: 8, runSpacing: 6, children: [
+                for (final (k, l) in externalAis.map((a) => (a.id, a.name)).toList()..insert(0, ('app', 'このアプリ内（Claude）')))
+                  ChoiceChip(label: Text(l), selected: s.preferredAi == k, onSelected: (_) => s.setPreferredAi(k)),
+              ]),
+              const SizedBox(height: 4),
+              Text('ChatGPT・Gemini などを選ぶと、AIの画面でそのAIがいちばん上に出ます。送る内容（検査値と年齢・性別のみ）をコピーしてそのAIのアプリを開くので、貼り付けて送信します。各社の有料プランがそのまま使え、APIキーは不要です。',
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+            ]),
+          ),
           ListTile(
             leading: const Icon(Icons.key_outlined),
             title: const Text('APIキー・モデル'),

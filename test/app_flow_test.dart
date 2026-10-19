@@ -194,9 +194,12 @@ void main() {
     await t.tap(find.byType(BackButton).last);
     await settle(t);
 
-    // AI（オフライン）
+    // AI（オフライン）。いつも使うAIを Gemini にしておくと、いちばん上に出る
+    await services.settings.setPreferredAi('gemini');
     await t.tap(find.text('AI'));
     await settle(t);
+    expect(find.text('Geminiで評価する'), findsOneWidget);
+    expect(find.text('Gemini（いつもの）'), findsOneWidget);
     expect(find.textContaining('オフラインのためAI機能は使えません'), findsOneWidget);
     final gen = t.widget<FilledButton>(find.ancestor(of: find.text('AIアドバイスを生成'), matching: find.byWidgetPredicate((w) => w is FilledButton)));
     expect(gen.onPressed, isNull);

@@ -81,6 +81,13 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// いつも使うAI（'app' = このアプリ内の Claude API、または 'chatgpt' 'gemini' 'claude' 'copilot'）。
+  String get preferredAi => _prefs.getString('preferred_ai') ?? 'app';
+  Future<void> setPreferredAi(String v) async {
+    await _prefs.setString('preferred_ai', v);
+    notifyListeners();
+  }
+
   String get aiModel => _prefs.getString('ai_model') ?? defaultModel;
   Future<void> setAiModel(String v) async {
     await _prefs.setString('ai_model', v.trim().isEmpty ? defaultModel : v.trim());
