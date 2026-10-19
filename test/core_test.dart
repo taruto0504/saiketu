@@ -7,6 +7,7 @@ import 'package:labsight/services/ai_service.dart';
 import 'package:labsight/services/clinical_calc.dart';
 import 'package:labsight/services/lab_catalog.dart';
 import 'package:labsight/screens/capture_flow.dart';
+import 'package:labsight/screens/diagnosis_screen.dart';
 import 'package:labsight/services/ocr_parser.dart';
 import 'package:labsight/services/pii.dart';
 import 'package:labsight/services/rule_engine.dart';
@@ -278,7 +279,16 @@ void main() {
       expect(m['LIP']!.uncertain, isTrue);
     });
 
-    test('単位の表記ゆれ', () {
+    test('疾患カードの値の札', () {
+      final k = keyValues([
+        Evidence('Hb 6.2 g/dL（基準 11.6–14.8）↓、BUN 59.0 mg/dL（基準 8.0–20.0）↑、BUN/Cre比 31.4', 1),
+        Evidence('Hb 6.2 g/dL（基準 11.6–14.8）↓', 1),
+      ]);
+      expect(k.map((x) => x.label), ['Hb 6.2↓', 'BUN 59.0↑', 'BUN/Cre比 31.4']);
+      expect(k.first.arrow, '↓');
+    });
+
+        test('単位の表記ゆれ', () {
       expect(unitKey('10^3/uL'), unitKey('×10^3/μL'));
       expect(unitKey('×10³/μL'), unitKey('×10^3/μL'));
       expect(unitKey('万/uL'), unitKey('×10^4/μL'));

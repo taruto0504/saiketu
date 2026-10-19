@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/lab_set.dart';
 import '../widgets/common.dart';
+import '../widgets/finish.dart';
 
 const symptomChoices = [
   '発熱', '悪寒', '倦怠感', '食欲不振', '嘔気', '嘔吐', '下痢', '腹痛', '心窩部痛', '右季肋部痛', '背部痛',
@@ -11,8 +12,11 @@ const symptomChoices = [
 
 /// 第2段階：追加情報の入力（すべて任意）。
 class ContextInputScreen extends StatefulWidget {
-  const ContextInputScreen({super.key, required this.initial});
+  const ContextInputScreen({super.key, required this.initial, this.set});
   final PatientContext initial;
+
+  /// 「終了」で保存を確かめる結果。
+  final LabSet? set;
 
   @override
   State<ContextInputScreen> createState() => _ContextInputScreenState();
@@ -153,6 +157,7 @@ class _ContextInputScreenState extends State<ContextInputScreen> {
         ],
       ),
       bottomNavigationBar: BottomActions(children: [
+        if (widget.set != null) OutlinedButton(onPressed: () => finishFlow(context, widget.set!), child: const Text('終了')),
         FilledButton.icon(
           onPressed: () {
             final c = _collect();

@@ -6,6 +6,7 @@ import '../services/app_services.dart';
 import '../services/rule_engine.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/finish.dart';
 import 'ai_screen.dart';
 import 'context_input_screen.dart';
 
@@ -52,7 +53,7 @@ class DiagnosisController extends ChangeNotifier {
   Future<void> addContextAndReevaluate(BuildContext context) async {
     final updated = await Navigator.push<PatientContext>(
       context,
-      MaterialPageRoute(builder: (_) => ContextInputScreen(initial: set.context)),
+      MaterialPageRoute(builder: (_) => ContextInputScreen(initial: set.context, set: set)),
     );
     if (updated == null) return;
     set.context = updated;
@@ -85,6 +86,7 @@ class DiagnosisScreen extends StatelessWidget {
           ),
           body: const DiagnosisPanel(),
           bottomNavigationBar: BottomActions(children: [
+            OutlinedButton(onPressed: () => finishFlow(context, set), child: const Text('終了')),
             OutlinedButton.icon(
               onPressed: () => Navigator.push(
                   context, MaterialPageRoute(builder: (_) => AiScreen(set: set, previous: previous))),
@@ -190,7 +192,18 @@ class DiagnosisPanel extends StatelessWidget {
             padding: EdgeInsets.all(20),
             child: Text('ルールに該当する疾患・病態はありませんでした。\n（判定ルールでカバーしていない病態もあります。臨床所見と併せて判断してください）'),
           ),
-        for (final d in diff.items) _DiseaseCard(d: d, showChange: c.before != null),
+        // 可能性の高さごとに見出しを付ける
+        for (final (i, d) in diff.items.indexed) ...[
+          if (i == 0 || diff.items[i - 1].result.likelihood != d.result.likelihood)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 2),
+              child: Text(
+                switch (d.result.likelihood) { '高' => '可能性が高い', '中' => '可能性：中くらい', _ => '可能性は低いが考えておきたい' },
+                style: TextStyle(fontWeight: FontWeight.w700, color: _likeColor(context, d.result.likelihood)),
+              ),
+            ),
+          _DiseaseCard(d: d, showChange: c.before != null),
+        ],
         if (diff.dropped.isNotEmpty) ...[
           const SectionHeader('今回の評価で候補から外れた疾患', icon: Icons.remove_circle_outline),
           for (final d in diff.dropped)
@@ -290,11 +303,8 @@ class _DiseaseCard extends StatelessWidget {
     final r = d.result;
     final scheme = Theme.of(context).colorScheme;
     final lab = context.lab;
-    final likeColor = switch (r.likelihood) {
-      '高' => scheme.primary,
-      '中' => scheme.secondary,
-      _ => scheme.outline,
-    };
+    final likeColor = _likeColor(context, r.likelihood);
+    final level = switch (r.likelihood) { '高' => 3, '中' => 2, _ => 1 };
     Widget? badge;
     if (showChange) {
       badge = switch (d.change) {
@@ -305,6 +315,10 @@ class _DiseaseCard extends StatelessWidget {
       };
     }
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: level > 1 ? likeColor : scheme.outlineVariant, width: level > 1 ? 1.5 : 1),
+      ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
@@ -318,11 +332,59 @@ class _DiseaseCard extends StatelessWidget {
           ),
           title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16.5)),
           subtitle: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-              Text('可能性: ${r.likelihood}', style: TextStyle(color: likeColor, fontWeight: FontWeight.w700)),
-              Text(r.category, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
-              ?badge,
+            padding: const EdgeInsets.only(top: 6),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                // 可能性（3段階のメーター付き）
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: level > 1 ? likeColor.withValues(alpha: 0.12) : null,
+                    border: Border.all(color: likeColor, width: 1.5),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Text('可能性 ${r.likelihood}', style: TextStyle(color: likeColor, fontWeight: FontWeight.w800, fontSize: 13)),
+                    const SizedBox(width: 6),
+                    for (var i = 1; i <= 3; i++)
+                      Container(
+                        width: 6,
+                        height: 11,
+                        margin: const EdgeInsets.only(left: 2),
+                        decoration: BoxDecoration(
+                          color: likeColor.withValues(alpha: i <= level ? 1 : 0.22),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                  ]),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(border: Border.all(color: scheme.outlineVariant), borderRadius: BorderRadius.circular(6)),
+                  child: Text(r.category, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
+                ),
+                ?badge,
+              ]),
+              // 根拠になった値（短い札で）
+              if (keyValues(r.support).isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Wrap(spacing: 6, runSpacing: 4, children: [
+                    for (final k in keyValues(r.support))
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: k.arrow == '↑' ? lab.high : k.arrow == '↓' ? lab.low : scheme.outlineVariant),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(k.label,
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontFeatures: const [FontFeature.tabularFigures()],
+                                color: k.arrow == '↑' ? lab.high : k.arrow == '↓' ? lab.low : null)),
+                      ),
+                  ]),
+                ),
             ]),
           ),
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
@@ -416,4 +478,26 @@ class _EvidenceLine extends StatelessWidget {
       ]),
     );
   }
+}
+
+Color _likeColor(BuildContext context, String likelihood) {
+  final scheme = Theme.of(context).colorScheme;
+  return switch (likelihood) { '高' => context.lab.high, '中' => scheme.primary, _ => scheme.outline };
+}
+
+/// 根拠の文（「Hb 6.2 g/dL（基準 11.6–14.8）↓、BUN …」）から、カードの見出しに出す短い値の札を作る（最大4つ）。
+List<({String label, String? arrow})> keyValues(List<Evidence> support) {
+  final out = <({String label, String? arrow})>[];
+  final seen = <String>{};
+  final re = RegExp(r'^(.+?)\s+([<>]?[-\d.]+)(?:\s*[^（↑↓]*)?(?:（[^）]*）)?\s*([↑↓])?$');
+  for (final part in support.expand((e) => e.text.split('、'))) {
+    final t = part.trim();
+    final m = re.firstMatch(t);
+    final key = m?.group(1) ?? t;
+    final label = m != null ? '${m.group(1)} ${m.group(2)}${m.group(3) ?? ''}' : t.replaceFirst(RegExp(r'\s*（基準[^）]*）'), '');
+    if (label.isEmpty || label.length > 24 || !seen.add(key)) continue;
+    out.add((label: label, arrow: m?.group(3)));
+    if (out.length >= 4) break;
+  }
+  return out;
 }

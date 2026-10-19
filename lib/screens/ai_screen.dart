@@ -10,6 +10,7 @@ import '../services/app_services.dart';
 import '../services/pii.dart';
 import '../services/settings.dart';
 import '../widgets/common.dart';
+import '../widgets/finish.dart';
 import 'settings_screen.dart';
 
 /// AIアドバイス（オンライン時のみ）。
@@ -164,6 +165,7 @@ class _AiScreenState extends State<AiScreen> {
       appBar: AppBar(
         title: const Text('AIアドバイス'),
         actions: [
+          TextButton(onPressed: () => finishFlow(context, widget.set), child: const Text('終了')),
           if (started)
             IconButton(
               tooltip: 'やり直す',
