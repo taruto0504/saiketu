@@ -121,19 +121,37 @@ class LabCatalog extends ChangeNotifier {
       if (_byCode.containsKey(e.value)) addOcr(e.key, e.value);
     }
     amb.forEach(_ocrIndex.remove);
+    _jpKeys = null;
   }
 
   LabItemDef? byCode(String code) => _byCode[code];
 
   /// 別名から項目コードを引く（例: "クレアチニン" → CRE）。
   /// [section] が尿検査・喀痰検査のときは、その欄だけの別名（「蛋白」「pH」「Na」など）を先に見る。
-  String? codeForAlias(String text, {LabCategory? section}) {
+  /// [exact] のときは読み違いを許した照合をしない（複数の語をつないで照合するとき。「Ca L」→「CAL」→ iCa などを防ぐ）。
+  String? codeForAlias(String text, {LabCategory? section, bool exact = false}) {
     final k = normalizeName(text);
-    final c = (section == null ? null : _sectionIndex[section]?[k]) ?? _aliasIndex[k] ?? _ocrExact[k];
-    if (c != null) return c;
+    final c = (section == null ? null : _sectionIndex[section]?[k]) ?? _aliasIndex[k] ?? (exact ? null : _ocrExact[k]);
+    if (c != null || exact) return c;
     // 読み取りの紛らわしい文字（0とO、1とl、bとD など）を同じとみなして、もう一度探す
     if (k.length < 2 || RegExp(r'^[\d.,]+$').hasMatch(k) || (k.length < 3 && !RegExp(r'\d').hasMatch(k))) return null;
     return _ocrIndex[ocrKey(k)];
+  }
+
+  List<MapEntry<String, String>>? _jpKeys;
+
+  /// 日本語の項目名を、1文字の違いまで許して探す（読めなかった行の救済用。「リバパーゼ」→ リパーゼ）。
+  String? fuzzyJp(String text) {
+    final k = kanaKey(text);
+    final jp = RegExp(r'[\u3040-\u30FF\u4E00-\u9FFF]');
+    if (k.length < 3 || !jp.hasMatch(k)) return null;
+    _jpKeys ??= {
+      for (final d in _all)
+        for (final a in [d.jpName, ...d.aliases])
+          if (jp.hasMatch(a) && kanaKey(a).length >= 3) kanaKey(a): d.code,
+    }.entries.toList();
+    final hits = {for (final e in _jpKeys!) if (editDistance(e.key, k) <= 1) e.value};
+    return hits.length == 1 ? hits.first : null;
   }
 
   /// 別名辞書のキー（OCRの照合用）。
@@ -270,5 +288,35 @@ const ocrAliases = <MapEntry<String, String>>[
   MapEntry('CA+T', 'ICA'), MapEntry('CAT+', 'ICA'), MapEntry('ANBAR', 'AG'), MapEntry('ANGAR', 'AG'),
   MapEntry('ANBAP', 'AG'), MapEntry('ANGAF', 'AG'), MapEntry('O2H', 'O2HB'), MapEntry('SSO2', 'SO2'),
   MapEntry('HC03ACT', 'HCO3'), MapEntry('FH', 'PH'), MapEntry('HHD', 'HHB'), MapEntry('O2HD', 'O2HB'),
-  MapEntry('SU2', 'SO2'), MapEntry('TO2', 'TCO2'), MapEntry('卜体', 'U_KET'), MapEntry('体', 'U_KET'), MapEntry('トン体', 'U_KET'),
+  MapEntry('SU2', 'SO2'), MapEntry('K4', 'K'), MapEntry('TO2', 'TCO2'), MapEntry('卜体', 'U_KET'), MapEntry('体', 'U_KET'), MapEntry('トン体', 'U_KET'),
 ];
+
+const _voiced = 'ガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポヴがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽ';
+const _plain = 'カキクケコサシスセソタチツテトハヒフヘホハヒフヘホウかきくけこさしすせそたちつてとはひふへほはひふへほ';
+
+/// カタカナの濁点・半濁点・長音を除いた名前（読み取りで「リパーゼ」が「リバパーゼ」になる など）。
+String kanaKey(String s) {
+  final b = StringBuffer();
+  for (final ch in normalizeName(s).split('')) {
+    if ('゛゜ーｰ‐°\'’・ﾞﾟ'.contains(ch)) continue;
+    final i = _voiced.indexOf(ch);
+    b.write(i >= 0 ? _plain[i] : ch);
+  }
+  return b.toString();
+}
+
+/// 編集距離（1文字の挿入・削除・置換を1とする）。長さが2以上違うときは 2 を返す。
+int editDistance(String a, String b) {
+  if ((a.length - b.length).abs() > 1) return 2;
+  final d = List.generate(a.length + 1, (i) => List<int>.filled(b.length + 1, 0)..[0] = i);
+  for (var j = 1; j <= b.length; j++) {
+    d[0][j] = j;
+  }
+  for (var i = 1; i <= a.length; i++) {
+    for (var j = 1; j <= b.length; j++) {
+      final x = d[i - 1][j] + 1, y = d[i][j - 1] + 1, z = d[i - 1][j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1);
+      d[i][j] = x < y ? (x < z ? x : z) : (y < z ? y : z);
+    }
+  }
+  return d[a.length][b.length];
+}

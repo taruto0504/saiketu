@@ -254,6 +254,30 @@ void main() {
       expect(m['SO2']!.uncertain, isTrue);
     });
 
+    test('基準値を結果と取り違えない・注記や印の読み違い・小さく崩れた項目名', () {
+      final r = parser.parse([
+        'WBC 6.7 3.3 - 8.6 10°3/ μ L', 'RBC 1 2.39 3.86-4.92 10^6/μL', 'N-Neu% H 75.2 38.3-74.7 %', 'PT秒数 12.1 sec',
+        'CRP H 1.12 0.0-0.14mg/dL', 'AST(GOT) L 8 13-30U/L', 'r-GT(r-GTP) 16 9-32U/L', 'Ca L 8.5 8.8-10.1mg/dL',
+        'Na L 137再検済 138-145mmol/L', 'K HP 6.5再検済 3.6-4.8mmol/L', 'リバパーゼ 30 13-55U/L',
+      ].map((t) => OcrLine(t)).toList());
+      final m = {for (final v in r.values) v.code: v};
+      expect(m['WBC']!.value, 6700);
+      expect(m['WBC']!.uncertain, isFalse);
+      expect(m['RBC']!.value, closeTo(239, 0.01));
+      expect(m['NEUT']!.value, 75.2);
+      expect(m['PT']!.value, 12.1);
+      expect(m['CRP']!.value, 1.12);
+      expect(m['CRP']!.uncertain, isFalse); // 「0.0-0.14mg/dL」は基準値＋単位
+      expect(m['AST']!.value, 8);
+      expect(m['GGT']!.value, 16);
+      expect(m['CA']!.value, 8.5); // 「Ca L」を iCa と読まない
+      expect(m.containsKey('ICA'), isFalse);
+      expect(m['NA']!.value, 137);
+      expect(m['K']!.value, 6.5);
+      expect(m['LIP']!.value, 30);
+      expect(m['LIP']!.uncertain, isTrue);
+    });
+
     test('単位の表記ゆれ', () {
       expect(unitKey('10^3/uL'), unitKey('×10^3/μL'));
       expect(unitKey('×10³/μL'), unitKey('×10^3/μL'));

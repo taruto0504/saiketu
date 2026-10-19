@@ -56,23 +56,23 @@ const List<LabItemDef> builtinLabItems = [
   LabItemDef(
       code: 'NEUT', name: 'Neut', jpName: '好中球', category: _cbc, unit: '%',
       low: 40, high: 75, plausLow: 0, plausHigh: 100,
-      aliases: ['NEUT', 'NEUT%', '好中球', '好中球%', '好中球率', 'NEUTRO', 'SEG', 'NE%', '分葉核球']),
+      aliases: ['NEUT', 'NEUT%', '好中球', '好中球%', '好中球率', 'NEUTRO', 'SEG', 'NE%', '分葉核球', 'N-NEU%', 'NEU%', 'NEU']),
   LabItemDef(
       code: 'LYMPH', name: 'Lymph', jpName: 'リンパ球', category: _cbc, unit: '%',
       low: 18, high: 50, plausLow: 0, plausHigh: 100,
-      aliases: ['LYMPH', 'LYMPH%', 'LYMPHO', 'LY%', 'リンパ球', 'リンパ球%', 'リンパ球率']),
+      aliases: ['LYMPH', 'LYMPH%', 'LYMPHO', 'LY%', 'リンパ球', 'リンパ球%', 'リンパ球率', 'N-LYMP%', 'LYMP%', 'LYMP']),
   LabItemDef(
       code: 'MONO', name: 'Mono', jpName: '単球', category: _cbc, unit: '%',
       low: 2, high: 10, plausLow: 0, plausHigh: 100,
-      aliases: ['MONO', 'MONO%', 'MO%', '単球', '単球%', '単球率']),
+      aliases: ['MONO', 'MONO%', 'MO%', '単球', '単球%', '単球率', 'N-MONO%']),
   LabItemDef(
       code: 'EOS', name: 'Eos', jpName: '好酸球', category: _cbc, unit: '%',
       low: 0, high: 7, plausLow: 0, plausHigh: 100,
-      aliases: ['EOS', 'EOS%', 'EOSINO', 'EO%', '好酸球', '好酸球%', '好酸球率']),
+      aliases: ['EOS', 'EOS%', 'EOSINO', 'EO%', '好酸球', '好酸球%', '好酸球率', 'N-EOS%']),
   LabItemDef(
       code: 'BASO', name: 'Baso', jpName: '好塩基球', category: _cbc, unit: '%',
       low: 0, high: 2, plausLow: 0, plausHigh: 100,
-      aliases: ['BASO', 'BASO%', 'BA%', '好塩基球', '好塩基球%', '好塩基球率']),
+      aliases: ['BASO', 'BASO%', 'BA%', '好塩基球', '好塩基球%', '好塩基球率', 'N-BASO%']),
   LabItemDef(
       code: 'RBC', name: 'RBC', jpName: '赤血球数', category: _cbc, unit: '×10^4/μL',
       low: 386, high: 555, lowM: 435, highM: 555, lowF: 386, highF: 492,
@@ -119,7 +119,7 @@ const List<LabItemDef> builtinLabItems = [
   LabItemDef(
       code: 'PT', name: 'PT', jpName: 'プロトロンビン時間', category: _coag, unit: '秒',
       low: 10.0, high: 13.0, plausLow: 5, plausHigh: 200,
-      aliases: ['PT', 'PT秒', 'PT(秒)', 'プロトロンビン時間', 'PTSEC']),
+      aliases: ['PT', 'PT秒', 'PT(秒)', 'PT秒数', 'プロトロンビン時間', 'PTSEC']),
   LabItemDef(
       code: 'PT_PCT', name: 'PT%', jpName: 'PT活性', category: _coag, unit: '%',
       low: 70, high: 130, critLow: 20, plausLow: 1, plausHigh: 200, decimals: 0,
@@ -131,7 +131,7 @@ const List<LabItemDef> builtinLabItems = [
   LabItemDef(
       code: 'APTT', name: 'APTT', jpName: '活性化部分トロンボプラスチン時間', category: _coag, unit: '秒',
       low: 24, high: 39, critHigh: 100, plausLow: 10, plausHigh: 250,
-      aliases: ['APTT', 'APTT秒', '活性化部分トロンボプラスチン時間']),
+      aliases: ['APTT', 'APTT秒', 'APTT秒数', '活性化部分トロンボプラスチン時間']),
   LabItemDef(
       code: 'FIB', name: 'Fib', jpName: 'フィブリノゲン', category: _coag, unit: 'mg/dL',
       low: 200, high: 400, critLow: 100, plausLow: 10, plausHigh: 1500, decimals: 0,
@@ -172,7 +172,7 @@ const List<LabItemDef> builtinLabItems = [
       code: 'GGT', name: 'γ-GTP', jpName: 'γ-GT', category: _liver, unit: 'U/L',
       low: 9, high: 64, lowM: 13, highM: 64, lowF: 9, highF: 32,
       plausLow: 1, plausHigh: 10000, decimals: 0,
-      aliases: ['γ-GTP', 'γGTP', 'Γ-GTP', 'ΓGTP', 'γ-GT', 'γGT', 'GGT', 'GGTP', 'GTP', 'Y-GTP', 'YGTP', 'r-GTP', 'rGTP', 'ガンマGTP']),
+      aliases: ['γ-GTP', 'γGTP', 'Γ-GTP', 'ΓGTP', 'γ-GT', 'γGT', 'GGT', 'GGTP', 'GTP', 'Y-GTP', 'YGTP', 'r-GTP', 'rGTP', 'r-GT', 'rGT', 'r-GT(r-GTP)', 'ガンマGTP']),
   LabItemDef(
       code: 'TBIL', name: 'T-Bil', jpName: '総ビリルビン', category: _liver, unit: 'mg/dL',
       low: 0.4, high: 1.5, critHigh: 15, plausLow: 0, plausHigh: 60,

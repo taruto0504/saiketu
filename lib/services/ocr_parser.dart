@@ -92,7 +92,7 @@ class LabSheetParser {
   static final _upper = RegExp(r'^[(（]?[≦≤<]=?\s*(\d+(?:\.\d+)?)[)）]?$');
   static final _lower = RegExp(r'^[(（]?[≧≥>]=?\s*(\d+(?:\.\d+)?)[)）]?$');
   static final _unitHint = RegExp(r'(/|%|‰|mg|g/|U/L|IU|mEq|mmol|μmol|umol|mmHg|kPa|fL|fl|pg|ng|μg|ug|秒|sec|×10|x10|mOsm|ml/min|mL/min)', caseSensitive: false);
-  static final _flagToken = RegExp(r'^\*?(H|L|HH|LL|↑|↓|高|低|\+|-)\*?$');
+  static final _flagToken = RegExp(r'^\*?(H|L|HH|LL|HP|LP|↑|↓|高|低|\+|-)\*?$');
   static final _valueWithFlag = RegExp(r'^(.*?\d)\s*\*?(H|L|↑|↓)\*?$');
   static final _flagWithValue = RegExp(r'^\*?(H|L|↑|↓)\*?\s*([-+]?\d.*)$');
 
@@ -114,6 +114,10 @@ class LabSheetParser {
           .replaceAllMapped(RegExp(r'([(（])\s+'), (m) => m[1]!)
           .replaceAllMapped(RegExp(r'\s+([)）])'), (m) => m[1]!)
           .replaceAllMapped(RegExp(r'([\u3040-\u30FF\u4E00-\u9FFF【】])\s+(?=[\u3040-\u30FF\u4E00-\u9FFF【】])'), (m) => m[1]!)
+          // 「10°3/ μ L」「10ˆ3/μL」→「10^3/μL」
+          .replaceAllMapped(RegExp(r'10\s*[°ˆ˚^]\s*(\d)'), (m) => '10^${m[1]}')
+          .replaceAllMapped(RegExp(r'/\s+([μµu])\s*([lL])\b'), (m) => '/${m[1]}${m[2]}')
+          .replaceAllMapped(RegExp(r'([μµ])\s+([lL])\b'), (m) => '${m[1]}${m[2]}')
           .trim();
       if (text.isEmpty) continue;
       // 採血日時は個人情報ではないので、同じ行に番号などがあっても先に拾う
@@ -149,6 +153,19 @@ class LabSheetParser {
         seen.add(v.code);
         values.add(v);
       }
+    }
+    // 日本語の項目名が少し崩れて読めなかった行（「リバパーゼ 30」など）は、似た項目名を探して要確認で読む
+    for (final x in nameless) {
+      final parts = x.text.split(RegExp(r'\s+'));
+      if (parts.length < 2) continue;
+      final code = catalog.fuzzyJp(parts.first);
+      if (code == null || seen.contains(code)) continue;
+      final v = _parseRow('${catalog.byCode(code)!.name} ${parts.skip(1).join(' ')}', null, x.section).firstOrNull;
+      if (v == null || v.code != code) continue;
+      v.uncertain = true;
+      v.warnings.add('項目名「${parts.first}」を「${catalog.byCode(code)!.name}」と推定しました。原本と照合してください');
+      seen.add(code);
+      values.add(v);
     }
     // 血液ガスで pH の項目名だけが読めなかったとき：「7.465」のような値の形から pH と推定する
     if (!seen.contains('PH') && (seen.contains('PCO2') || seen.contains('PO2'))) {
@@ -242,6 +259,20 @@ class LabSheetParser {
         last = null;
         continue;
       }
+      // 基準値と単位がくっついている（「0.0-0.14mg/dL」「13-30U/L」）
+      var g = RegExp(r'^([(（]?[-+]?\d+(?:\.\d+)?\s*[-~～〜–－]\s*\d+(?:\.\d+)?[)）]?)([^\d\s.)）].*)$').firstMatch(t);
+      if (g != null) {
+        out
+          ..add(g.group(1)!)
+          ..add(g.group(2)!);
+        continue;
+      }
+      // 結果に「再検済」などの注記がくっついている（「137再検済」）
+      g = RegExp(r'^([<>≦≧]?[-+]?\d+(?:\.\d+)?)((?:再|確|済|济|检|※|注|溶血|乳び|希釈).*)$').firstMatch(t);
+      if (g != null) {
+        out.add(g.group(1)!);
+        continue;
+      }
       final c = catalog.codeForAlias(t, section: section);
       if (c != null) {
         out.add(t);
@@ -270,6 +301,20 @@ class LabSheetParser {
       }
       out.add(t);
     }
+    // 「3.3 - 8.6」「3.3 -8.6」のように分かれた基準値を1つにする（基準値の下限を結果と取り違えないように）
+    final num = RegExp(r'^[-+]?\d+(?:\.\d+)?$');
+    for (var i = 0; i + 1 < out.length; i++) {
+      if (!num.hasMatch(out[i])) continue;
+      if (RegExp(r'^[-~～〜–－]$').hasMatch(out[i + 1]) && i + 2 < out.length && num.hasMatch(out[i + 2])) {
+        out.replaceRange(i, i + 3, ['${out[i]}-${out[i + 2]}']);
+      } else if (RegExp(r'^[~～〜–－-]\d+(?:\.\d+)?$').hasMatch(out[i + 1]) && i > 0 && num.hasMatch(out[i - 1])) {
+        out.replaceRange(i, i + 2, ['${out[i]}-${out[i + 1].substring(1)}']);
+      }
+    }
+    // 「RBC 1 2.39 3.86-4.92」：結果の前の「1」「l」は印の「L」の読み違い（結果のあとに基準値の範囲があるときだけ）
+    for (var i = 1; i + 2 < out.length; i++) {
+      if (RegExp(r'^[1lI|]$').hasMatch(out[i]) && num.hasMatch(out[i + 1]) && _range.hasMatch(out[i + 2])) out[i] = 'L';
+    }
     return out;
   }
 
@@ -287,7 +332,7 @@ class LabSheetParser {
         // 「(-)」「+」のように記号だけの語は項目名に含めない（定性の結果なので）
         if (k > 1 && tokens.sublist(i + 1, i + k).any((x) => normalizeName(x).isEmpty)) continue;
         final joined = tokens.sublist(i, i + k).join('');
-        final c = catalog.codeForAlias(joined, section: section);
+        final c = catalog.codeForAlias(joined, section: section, exact: k > 1);
         if (c != null) {
           // 数値単独のトークンを項目名とみなさない（「SO2」のように英字で始まるものは項目名）
           if (_num.hasMatch(joined) && RegExp(r'^[<>≦≧≤≥]?[-+]?\d').hasMatch(joined)) continue;
