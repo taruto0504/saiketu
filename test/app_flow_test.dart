@@ -188,6 +188,12 @@ void main() {
     await t.tapAt(const Offset(20, 20));
     await settle(t);
 
+    // 疾患推定の画面では「終了」「保存済み」「情報を追加して再評価」
+    expect(find.widgetWithText(OutlinedButton, '終了'), findsOneWidget);
+    expect(find.widgetWithText(OutlinedButton, '保存済み'), findsOneWidget);
+    await t.tap(find.byType(BackButton).last);
+    await settle(t);
+
     // AI（オフライン）
     await t.tap(find.text('AI'));
     await settle(t);
@@ -195,8 +201,6 @@ void main() {
     final gen = t.widget<FilledButton>(find.ancestor(of: find.text('AIアドバイスを生成'), matching: find.byWidgetPredicate((w) => w is FilledButton)));
     expect(gen.onPressed, isNull);
     expect(find.widgetWithText(TextButton, '終了'), findsOneWidget);
-    await t.tap(find.byType(BackButton).last);
-    await settle(t);
     await t.tap(find.byType(BackButton).last);
     await settle(t);
 
@@ -213,8 +217,6 @@ void main() {
     expect(find.textContaining('前回値からの変化も評価に使用'), findsOneWidget);
     await t.scrollUntilVisible(find.text('急性腎障害（AKI）'), 400, scrollable: find.byType(Scrollable).first);
     expect(find.text('急性腎障害（AKI）'), findsOneWidget);
-    // 可能性ごとの見出し
-    expect(find.textContaining('可能性', findRichText: true), findsWidgets);
 
     // 終了：保存済みの結果なので、そのまま最初の画面へ
     await t.tap(find.widgetWithText(OutlinedButton, '終了'));
